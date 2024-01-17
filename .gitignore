@@ -1,0 +1,9 @@
+/binaries/
+/docs/
+/RG/
+/ti83plus/ti83plus.inc
+/ti83plus/ti83plus2.inc
+/ti83plus/ti83plusAsm.inc
+/toolchain/cache/
+/toolchain/devpac8x/
+/toolchain/tasm/
