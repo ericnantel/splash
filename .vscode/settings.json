@@ -1,0 +1,22 @@
+{
+    "search.exclude": {
+        "**/binaries": true,
+        "**/docs": true,
+        "**/emulators": true,
+        "**/resources": true,
+        "**/roms": true,
+        "**/toolchain/cache": true,
+        "**/toolchain/devpac8x": true,
+        "**/toolchain/tasm": true
+    },
+    "files.exclude": {
+        "**/binaries": true,
+        "**/docs": true,
+        "**/emulators": true,
+        "**/resources": true,
+        "**/roms": true,
+        "**/toolchain/cache": true,
+        "**/toolchain/devpac8x": true,
+        "**/toolchain/tasm": true,
+    }
+}
