@@ -158,7 +158,7 @@ LExit:
     bcall(_ClrLCDFull)
     bcall(_HomeUp)
     bcall(_CursorOn)
-    LD A, FFh
+    LD A, 11111111b
     OUT (_KeyPort), A
     RET
 
