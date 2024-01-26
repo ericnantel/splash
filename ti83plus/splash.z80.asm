@@ -29,6 +29,9 @@ KEYCODE_F7	        EQU 11110111b
 KEYCODE_FB	        EQU 11111011b
 KEYCODE_FD	        EQU 11111101b
 KEYCODE_FE	        EQU 11111110b
+SCREEN_WIDTH        EQU 96
+SCREEN_HEIGHT       EQU 64
+FLOOR_CACHE_LENGTH  EQU 8192
 .LIST
     
 ;========================================
@@ -253,6 +256,31 @@ UpdateCameraWorldCoords:
     RET
 
 ;========================================
+;       UPDATE CAMERA VIEWPORT SIZE     ;
+;   INPUT   BC                          ;
+;   OUTPUT  NONE                        ;
+;========================================
+UpdateCameraViewportSize:
+    LD HL, GCameraViewportSize
+    LD (HL), B
+    INC HL
+    LD (HL), C
+    RET
+
+;========================================
+;       CLEAR FLOOR CACHE               ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+ClearFloorCache:
+    LD HL, GFloorCache
+    LD DE, GFloorCache+1
+    LD BC, FLOOR_CACHE_LENGTH-1
+    LD (HL), 0
+    LDIR
+    RET
+
+;========================================
 ;       CONVERT WORLD TO SCREEN COORDS  ;
 ;   INPUT   BC                          ;
 ;   OUTPUT  DE                          ;
@@ -444,6 +472,23 @@ GPlayerWorldCoords:
 GCameraWorldCoords:
     .DB 0
     .DB 0
+
+;========================================
+;       CAMERA VIEWPORT SIZE            ;
+;   BYTE0   X_SIZE                      ;
+;   BYTE1   Y_SIZE                      ;
+;========================================
+GCameraViewportSize:
+    .DB SCREEN_WIDTH
+    .DB SCREEN_HEIGHT
+
+;========================================
+;       FLOOR CACHE                     ;
+;   8KB     RESERVED SPACE              ;
+;========================================
+GFloorCache:
+;    .DB FLOOR_CACHE_LENGTH DUP(0)
+    .FILL FLOOR_CACHE_LENGTH, (0)
 
 ;========================================
 ;       STRINGS                         ;
