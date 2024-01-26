@@ -383,7 +383,7 @@ ConvertGridToScreenCoords:
 ;========================================
 PackMatrixCoords:
     LD A, C
-    SLL A
+    SLA A
     SLA A
     SLA A
     SLA A
@@ -402,7 +402,7 @@ UnpackMatrixCoords:
     AND 00001111b
     LD D, A
     LD A, C
-    SRL A
+    SRA A
     SRA A
     SRA A
     SRA A
@@ -468,6 +468,6 @@ SIntroPage0Row3:
     .DB "You need mana..", 0
 SIntroPage0Row4:
     .DB "Good luck mate.", 0
-    
+
 .end
 .END
