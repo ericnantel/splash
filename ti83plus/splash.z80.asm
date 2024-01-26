@@ -1,14 +1,14 @@
 
-;================================
-;       PROGRAM SPLASH          ;
-;       VERSION 1.0.0           ;
-;       AUTHOR ERIC NANTEL      ;
-;       COPYRIGHT 2023-2024     ;
-;================================
+;========================================
+;       PROGRAM SPLASH                  ;
+;       VERSION 1.0.0                   ;
+;       AUTHOR ERIC NANTEL              ;
+;       COPYRIGHT 2023-2024             ;
+;========================================
 
-;================================
-;       NO LISTING              ;
-;================================
+;========================================
+;       NO LISTING                      ;
+;========================================
 .NOLIST
 #include "ti83plus.inc"
 _JForceCmd          EQU 402Ah
@@ -31,14 +31,14 @@ KEYCODE_FD	        EQU 11111101b
 KEYCODE_FE	        EQU 11111110b
 .LIST
     
-;================================
-;       START ADDRESS           ;
-;================================
+;========================================
+;       START ADDRESS                   ;
+;========================================
 .ORG userMem - 2
 
-;================================
-;       ASM COMPILE TOKENS      ;
-;================================
+;========================================
+;       ASM COMPILE TOKENS              ;
+;========================================
 .DB t2ByteTok, tAsmCmp
 
 LStart:
@@ -162,9 +162,15 @@ LExit:
     OUT (_KeyPort), A
     RET
 
-;================================
-;       ROUTINES                ;
-;================================
+;========================================
+;       ROUTINES                        ;
+;========================================
+
+;========================================
+;       UPDATE INPUTS                   ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
 UpdateInputs:
     PUSH AF
     PUSH BC
@@ -226,23 +232,222 @@ LWriteInputs:
     POP AF
     RET
 
-;================================
-;       INPUTS                  ;
-;   BIT0    KEY_PRESSED_DOWN    ;
-;   BIT1    KEY_PRESSED_LEFT    ;
-;   BIT2    KEY_PRESSED_RIGHT   ;
-;   BIT3    KEY_PRESSED_UP      ;
-;   BIT4    KEY_PRESSED_ALPHA   ;
-;   BIT5    KEY_PRESSED_2ND     ;
-;   BIT6    KEY_PRESSED_MODE    ;
-;   BIT7    KEY_PRESSED_DEL     ;
-;================================
+;========================================
+;       UPDATE PLAYER WORLD COORDS      ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+UpdatePlayerWorldCoords:
+    RET
+
+;========================================
+;       UPDATE CAMERA WORLD COORDS      ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+UpdateCameraWorldCoords:
+    LD HL, GPlayerWorldCoords
+    LD DE, GCameraWorldCoords
+    LD BC, 2
+    LDIR
+    RET
+
+;========================================
+;       CONVERT WORLD TO SCREEN COORDS  ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertWorldToScreenCoords:
+    LD HL, GCameraWorldCoords
+    LD A, B
+    SUB (HL)
+    LD D, A
+    INC HL
+    LD A, C
+    SUB (HL)
+    LD E, A
+    RET
+
+;========================================
+;       CONVERT WORLD TO GRID COORDS    ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertWorldToGridCoords:
+    LD D, B
+    LD E, C
+    SRA D
+    SRA D
+    SRA D
+    SRA D
+    SRA E
+    SRA E
+    SRA E
+    SRA E
+    RET
+
+;========================================
+;       CONVERT WORLD TO MATRIX COORDS  ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertWorldToMatrixCoords:
+    PUSH BC
+    CALL ConvertWorldToGridCoords
+    LD B, D
+    LD C, E
+    CALL ConvertGridToWorldCoords
+    POP BC
+    LD A, B
+    SUB D
+    LD D, A
+    LD A, C
+    SUB E
+    LD E, A
+    RET
+
+;========================================
+;       CONVERT SCREEN TO WORLD COORDS  ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertScreenToWorldCoords:
+    LD HL, GCameraWorldCoords
+    LD A, B
+    ADD A, (HL)
+    LD D, A
+    INC HL
+    LD A, C
+    ADD A, (HL)
+    LD E, A
+    RET
+
+;========================================
+;       CONVERT SCREEN TO GRID COORDS   ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertScreenToGridCoords:
+    CALL ConvertScreenToWorldCoords
+    LD B, D
+    LD C, E
+    CALL ConvertWorldToGridCoords
+    RET
+
+;========================================
+;       CONVERT SCREEN TO MATRIX COORDS ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertScreenToMatrixCoords:
+    CALL ConvertScreenToWorldCoords
+    LD B, D
+    LD C, E
+    CALL ConvertWorldToMatrixCoords
+    RET
+
+;========================================
+;       CONVERT GRID TO WORLD COORDS    ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertGridToWorldCoords:
+    LD D, B
+    LD E, C
+    SLA D
+    SLA D
+    SLA D
+    SLA D
+    SLA E
+    SLA E
+    SLA E
+    SLA E
+    RET
+
+;========================================
+;       CONVERT GRID TO SCREEN  COORDS  ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertGridToScreenCoords:
+    CALL ConvertGridToWorldCoords
+    LD B, D
+    LD C, E
+    CALL ConvertWorldToScreenCoords
+    RET
+
+;========================================
+;       PACK MATRIX COORDS              ;       
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+PackMatrixCoords:
+    LD A, C
+    SLL A
+    SLA A
+    SLA A
+    SLA A
+    ADD A, B
+    LD D, 0
+    LD E, A
+    RET
+
+;========================================
+;       UNPACK MATRIX COORDS            ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+UnpackMatrixCoords:
+    LD A, C
+    AND 00001111b
+    LD D, A
+    LD A, C
+    SRL A
+    SRA A
+    SRA A
+    SRA A
+    LD E, A
+    RET
+
+;========================================
+;       DATA                            ;
+;========================================
+
+;========================================
+;       INPUTS                          ;
+;   BIT0    KEY_PRESSED_DOWN            ;
+;   BIT1    KEY_PRESSED_LEFT            ;
+;   BIT2    KEY_PRESSED_RIGHT           ;
+;   BIT3    KEY_PRESSED_UP              ;
+;   BIT4    KEY_PRESSED_ALPHA           ;
+;   BIT5    KEY_PRESSED_2ND             ;
+;   BIT6    KEY_PRESSED_MODE            ;
+;   BIT7    KEY_PRESSED_DEL             ;
+;========================================
 GInputs:
     .DB 00000000b
 
-;================================
-;       STRINGS                 ;
-;================================
+;========================================
+;       PLAYER WORLD COORDS             ;
+;   BYTE0   X_COORD                     ;
+;   BYTE1   Y_COORD                     ;
+;========================================
+GPlayerWorldCoords:
+    .DB 0
+    .DB 0
+
+;========================================
+;       CAMERA WORLD COORDS             ;
+;   BYTE0   X_COORD                     ;
+;   BYTE1   Y_COORD                     ;
+;========================================
+GCameraWorldCoords:
+    .DB 0
+    .DB 0
+
+;========================================
+;       STRINGS                         ;
+;========================================
 STitle:
     .DB "SPLASH", 0
 SVersion:
