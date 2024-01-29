@@ -34,7 +34,7 @@ SCREEN_WIDTH        EQU 96
 SCREEN_HEIGHT       EQU 64
 GRAPH_BUFFER_LENGTH EQU 768
 CACHE_LINE_LENGTH   EQU 16
-CACHE_BUFFER_LENGTH EQU 8192
+CACHE_BUFFER_LENGTH EQU 2048
 .LIST
     
 ;========================================
@@ -326,8 +326,6 @@ ConvertWorldToGridCoords:
     SRA D
     SRA D
     SRA D
-    SRA D
-    SRA E
     SRA E
     SRA E
     SRA E
@@ -404,8 +402,6 @@ ConvertGridToWorldCoords:
     SLA D
     SLA D
     SLA D
-    SLA D
-    SLA E
     SLA E
     SLA E
     SLA E
@@ -519,7 +515,7 @@ GCacheLine:
 
 ;========================================
 ;       CACHE BUFFER                    ;
-;   8KB     RESERVED SPACE              ;
+;   2KB     RESERVED SPACE              ;
 ;========================================
 GCacheBuffer:
 ;    .DB CACHE_BUFFER_LENGTH DUP(0)
