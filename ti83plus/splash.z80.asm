@@ -34,7 +34,7 @@ SCREEN_WIDTH        EQU 96
 SCREEN_HEIGHT       EQU 64
 GRAPH_BUFFER_LENGTH EQU 768
 CACHE_LINE_LENGTH   EQU 16
-FLOOR_CACHE_LENGTH  EQU 8192
+CACHE_BUFFER_LENGTH EQU 8192
 .LIST
     
 ;========================================
@@ -287,14 +287,14 @@ PresentGraphBuffer:
     RET
 
 ;========================================
-;       CLEAR FLOOR CACHE               ;
+;       CLEAR CACHE BUFFER              ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
 ;========================================
-ClearFloorCache:
-    LD HL, GFloorCache
-    LD DE, GFloorCache+1
-    LD BC, FLOOR_CACHE_LENGTH-1
+ClearCacheBuffer:
+    LD HL, GCacheBuffer
+    LD DE, GCacheBuffer+1
+    LD BC, CACHE_BUFFER_LENGTH-1
     LD (HL), 0
     LDIR
     RET
@@ -518,12 +518,12 @@ GCacheLine:
     .FILL CACHE_LINE_LENGTH, (0)
 
 ;========================================
-;       FLOOR CACHE                     ;
+;       CACHE BUFFER                    ;
 ;   8KB     RESERVED SPACE              ;
 ;========================================
-GFloorCache:
-;    .DB FLOOR_CACHE_LENGTH DUP(0)
-    .FILL FLOOR_CACHE_LENGTH, (0)
+GCacheBuffer:
+;    .DB CACHE_BUFFER_LENGTH DUP(0)
+    .FILL CACHE_BUFFER_LENGTH, (0)
 
 ;========================================
 ;       STRINGS                         ;
