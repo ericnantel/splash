@@ -13,6 +13,7 @@
 #include "ti83plus.inc"
 _JForceCmd          EQU 402Ah
 _HomeUp             EQU 4558h
+_GraphBuffer        EQU plotSScreen
 _KeyPort            EQU 01h
 KEYGROUP_BF         EQU 10111111b
 KEYGROUP_DF         EQU 11011111b
@@ -31,6 +32,8 @@ KEYCODE_FD          EQU 11111101b
 KEYCODE_FE          EQU 11111110b
 SCREEN_WIDTH        EQU 96
 SCREEN_HEIGHT       EQU 64
+GRAPH_BUFFER_LENGTH EQU 768
+CACHE_LINE_LENGTH   EQU 16
 FLOOR_CACHE_LENGTH  EQU 8192
 .LIST
     
@@ -155,6 +158,8 @@ LMainLoop:
     BIT 7, B
     JP Z, LExit
 
+    CALL Render
+
     JP LMainLoop
 
 LExit:
@@ -265,6 +270,20 @@ UpdateCameraViewportSize:
     LD (HL), B
     INC HL
     LD (HL), C
+    RET
+
+;========================================
+;       CLEAR GRAPH BUFFER              ;
+;========================================
+ClearGraphBuffer:
+    bcall(_GrBufClr)
+    RET
+
+;========================================
+;       PRESENT GRAPH BUFFER            ;
+;========================================
+PresentGraphBuffer:
+    bcall(_GrBufCpy)
     RET
 
 ;========================================
@@ -438,6 +457,14 @@ UnpackMatrixCoords:
     RET
 
 ;========================================
+;       RENDER                          ;
+;========================================
+Render:
+    CALL ClearGraphBuffer
+    CALL PresentGraphBuffer
+    RET
+
+;========================================
 ;       DATA                            ;
 ;========================================
 
@@ -481,6 +508,14 @@ GCameraWorldCoords:
 GCameraViewportSize:
     .DB SCREEN_WIDTH
     .DB SCREEN_HEIGHT
+
+;========================================
+;       CACHE LINE                      ;
+;   16B     RESERVED SPACE              ;
+;========================================
+GCacheLine:
+;    .DB CACHE_LINE_LENGTH DUP(0)
+    .FILL CACHE_LINE_LENGTH, (0)
 
 ;========================================
 ;       FLOOR CACHE                     ;
