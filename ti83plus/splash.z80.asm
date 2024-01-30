@@ -338,6 +338,8 @@ ConvertWorldToGridCoords:
     SRA D
     SRA D
     SRA D
+    SRA D
+    SRA E
     SRA E
     SRA E
     SRA E
@@ -440,6 +442,8 @@ ConvertGridToWorldCoords:
     SLA D
     SLA D
     SLA D
+    SLA D
+    SLA E
     SLA E
     SLA E
     SLA E
