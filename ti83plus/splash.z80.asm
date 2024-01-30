@@ -351,12 +351,11 @@ ConvertWorldToGridCoords:
 ;   OUTPUT  DE                          ;
 ;========================================
 ConvertWorldToCacheCoords:
-    CALL ConvertWorldToGridCoords
-    SLA D
-    SLA E
-    SLA E
-    SLA E
-    SLA E
+    LD D, B
+    LD E, C
+    SRA D
+    SRA D
+    SRA D
     RET
 
 ;========================================
@@ -467,10 +466,11 @@ ConvertGridToScreenCoords:
 ;   OUTPUT  DE                          ;
 ;========================================
 ConvertCacheToWorldCoords:
-    CALL ConvertCacheToGridCoords
-    LD B, D
-    LD C, E
-    CALL ConvertGridToWorldCoords
+    LD D, B
+    LD E, C
+    SLA D
+    SLA D
+    SLA D
     RET
 
 ;========================================
@@ -483,21 +483,6 @@ ConvertCacheToScreenCoords:
     LD B, D
     LD C, E
     CALL ConvertWorldToScreenCoords
-    RET
-
-;========================================
-;       CONVERT CACHE TO GRID COORDS    ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
-;========================================
-ConvertCacheToGridCoords:
-    LD D, B
-    LD E, C
-    SRA D
-    SRA E
-    SRA E
-    SRA E
-    SRA E
     RET
 
 ;========================================
