@@ -274,6 +274,8 @@ UpdateCameraViewportSize:
 
 ;========================================
 ;       CLEAR GRAPH BUFFER              ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
 ;========================================
 ClearGraphBuffer:
     bcall(_GrBufClr)
@@ -281,6 +283,8 @@ ClearGraphBuffer:
 
 ;========================================
 ;       PRESENT GRAPH BUFFER            ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
 ;========================================
 PresentGraphBuffer:
     bcall(_GrBufCpy)
@@ -454,6 +458,8 @@ UnpackMatrixCoords:
 
 ;========================================
 ;       RENDER                          ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
 ;========================================
 Render:
     CALL ClearGraphBuffer
