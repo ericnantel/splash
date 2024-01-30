@@ -282,6 +282,14 @@ ClearGraphBuffer:
     RET
 
 ;========================================
+;       DRAW GRAPH BUFFER               ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+DrawGraphBuffer:
+    RET
+
+;========================================
 ;       PRESENT GRAPH BUFFER            ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
@@ -336,6 +344,20 @@ ConvertWorldToGridCoords:
     RET
 
 ;========================================
+;       CONVERT WORLD TO CACHE COORDS   ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertWorldToCacheCoords:
+    CALL ConvertWorldToGridCoords
+    SLA D
+    SLA E
+    SLA E
+    SLA E
+    SLA E
+    RET
+
+;========================================
 ;       CONVERT WORLD TO MATRIX COORDS  ;
 ;   INPUT   BC                          ;
 ;   OUTPUT  DE                          ;
@@ -384,6 +406,18 @@ ConvertScreenToGridCoords:
     RET
 
 ;========================================
+;       CONVERT SCREEN TO CACHE COORDS  ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertScreenToCacheCoords:
+    CALL ConvertScreenToWorldCoords
+    LD B, D
+    LD C, E
+    CALL ConvertWorldToCacheCoords
+    RET
+
+;========================================
 ;       CONVERT SCREEN TO MATRIX COORDS ;
 ;   INPUT   BC                          ;
 ;   OUTPUT  DE                          ;
@@ -421,6 +455,45 @@ ConvertGridToScreenCoords:
     LD B, D
     LD C, E
     CALL ConvertWorldToScreenCoords
+    RET
+
+;========================================
+;       CONVERT CACHE TO WORLD COORDS   ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertCacheToWorldCoords:
+    CALL ConvertCacheToGridCoords
+    LD B, D
+    LD C, E
+    CALL ConvertGridToWorldCoords
+    RET
+
+;========================================
+;       CONVERT CACHE TO SCREEN COORDS  ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertCacheToScreenCoords:
+    CALL ConvertCacheToWorldCoords
+    LD B, D
+    LD C, E
+    CALL ConvertWorldToScreenCoords
+    RET
+
+;========================================
+;       CONVERT CACHE TO GRID COORDS    ;
+;   INPUT   BC                          ;
+;   OUTPUT  DE                          ;
+;========================================
+ConvertCacheToGridCoords:
+    LD D, B
+    LD E, C
+    SRA D
+    SRA E
+    SRA E
+    SRA E
+    SRA E
     RET
 
 ;========================================
@@ -463,6 +536,7 @@ UnpackMatrixCoords:
 ;========================================
 Render:
     CALL ClearGraphBuffer
+    CALL DrawGraphBuffer
     CALL PresentGraphBuffer
     RET
 
