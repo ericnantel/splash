@@ -136,104 +136,8 @@ LMainIntro_Release2ndKeyLoop:
     JR LMainIntro_Release2ndKeyLoop
 
 LLoadMainLevel:
-    ;TODO
-    ;LD BC, 0
-    ;CALL LoadLevel
-
-    ;DEBUG
-    ;JP LTest2
-    LD HL, GCacheBuffer
-    LD (HL), 255
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-
-    JP LMainIntro_Loop
-LTest2:
-    LD HL, GCacheBuffer
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 255
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-    INC HL
-    LD (HL), 1
-
+    LD BC, 0
+    CALL LoadLevel
 
 LMainIntro_Loop:
     LD A, KEYGROUP_BF
@@ -332,6 +236,76 @@ LExit:
 ;========================================
 ;       ROUTINES                        ;
 ;========================================
+
+;========================================
+;       LOAD LEVEL                      ;
+;   INPUT   BC (LEVEL ID)               ;
+;   OUTPUT  NONE                        ;
+;========================================
+LoadLevel:
+    bcall(_RunIndicOn)
+LFindLevelByID:
+    ;DEBUG..
+    LD HL, GCacheBuffer
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    
+LLoadLevel_End:
+    bcall(_RunIndicOff)
+    RET
 
 ;========================================
 ;       UPDATE INPUTS                   ;
