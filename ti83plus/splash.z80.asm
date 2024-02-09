@@ -245,8 +245,16 @@ LExit:
 LClean:
     LD (IY+textFlags), 0
     bcall(_SetTblGraphDraw)
-    bcall(4C36h);bcall(_ReloadAppEntryVecs)
-    bjump(_JForceCmdNoChar)
+    ;bcall(4C36h);bcall(_ReloadAppEntryVecs)
+    ;bjump(_JForceCmdNoChar)
+
+LCredits:
+    LD DE, 256*0+5
+    LD (curRow), DE
+    LD HL, SCredits
+    bcall(_PutS)
+    bcall(_NewLine)
+
     RET
 
 ;========================================
@@ -1063,6 +1071,8 @@ SIntroPage0Row3:
     .DB "You need mana..", 0
 SIntroPage0Row4:
     .DB "Good luck mate.", 0
+SCredits:
+    .DB "Credits: Follow me on GitHub.com/ericnantel", 0
 
 .end
 .END
