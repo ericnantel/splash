@@ -14,6 +14,9 @@
 _JForceCmd          EQU 402Ah
 _HomeUp             EQU 4558h
 _GraphBuffer        EQU plotSScreen
+_SaveBuffer         EQU saveSScreen
+_AppBuffer          EQU appBackUpScreen
+_TmpBuffer          EQU tempSwapArea
 _KeyPort            EQU 01h
 KEYGROUP_BF         EQU 10111111b
 KEYGROUP_DF         EQU 11011111b
@@ -33,7 +36,10 @@ KEYCODE_FE          EQU 11111110b
 SCREEN_WIDTH        EQU 96
 SCREEN_HEIGHT       EQU 64
 GRAPH_BUFFER_LENGTH EQU 768
-CACHE_LINE_LENGTH   EQU 16
+SAVE_BUFFER_LENGTH  EQU 768
+APP_BUFFER_LENGTH   EQU 768
+TMP_BUFFER_LENGTH   EQU 323
+CACHE_LINE_LENGTH   EQU 12
 CACHE_BUFFER_LENGTH EQU 2048
 .LIST
     
@@ -132,8 +138,12 @@ LMainIntro_Release2ndKeyLoop:
     NOP
     IN A, (_KeyPort)
     CP KEYCODE_DF
-    JP NZ, LMainIntro_Loop
+    JP NZ, LLoadMainLevel
     JR LMainIntro_Release2ndKeyLoop
+
+LLoadMainLevel:
+    LD BC, 0
+    CALL LoadLevel
 
 LMainIntro_Loop:
     LD A, KEYGROUP_BF
@@ -154,25 +164,175 @@ LMainLoop:
     CALL UpdateInputs
 
     LD HL, GInputs
-    LD B, (HL)
-    BIT 7, B
+    LD C, (HL)
+    BIT 7, C
     JP Z, LExit
+
+    ;DEBUG
+    ;LD HL, GInputs
+    ;LD C, (HL)
+LCheckCameraDown:
+    BIT 0, C
+    JR Z, LMoveCameraDown
+LCheckCameraLeft:
+    BIT 1, C
+    JR Z, LMoveCameraLeft
+LCheckCameraRight:
+    BIT 2, C
+    JR Z, LMoveCameraRight
+LCheckCameraUp:
+    BIT 3, C
+    JR Z, LMoveCameraUp
+
+    JR LCheckCameraDone
+
+LMoveCameraDown:
+    LD HL, GCameraWorldCoords
+    INC HL
+    LD A, (HL)
+    INC A
+    LD (HL), A
+    JR LCheckCameraLeft
+LMoveCameraLeft:
+    LD HL, GCameraWorldCoords
+    LD A, (HL)
+    DEC A
+    LD (HL), A
+    JR LCheckCameraRight
+LMoveCameraRight:
+    LD HL, GCameraWorldCoords
+    LD A, (HL)
+    INC A
+    LD (HL), A
+    JR LCheckCameraUp
+LMoveCameraUp:
+    LD HL, GCameraWorldCoords
+    INC HL
+    LD A, (HL)
+    DEC A
+    LD (HL), A
+
+LCheckCameraDone:
+
+    ;DEBUG
+    ; LD IX, GCameraWorldCoords
+    ; LD DE, 256*0+5
+    ; LD (curRow), DE
+    ; LD H, 0
+    ; LD L, (IX+0)
+    ; bcall(_DispHL)
+    ; LD DE, 256*0+6
+    ; LD (curRow), DE
+    ; LD H, 0
+    ; LD L, (IX+1)
+    ; bcall(_DispHL)
 
     CALL Render
 
     JP LMainLoop
 
 LExit:
+    LD A, busyNormal
+    LD (indicBusy), A
+    EI
     bcall(_ClrLCDFull)
     bcall(_HomeUp)
     bcall(_CursorOn)
+    bcall(_RunIndicOn)
     LD A, 11111111b
     OUT (_KeyPort), A
+
+LClean:
+    LD (IY+textFlags), 0
+    bcall(_SetTblGraphDraw)
+    ;bcall(4C36h);bcall(_ReloadAppEntryVecs)
+    ;bjump(_JForceCmdNoChar)
+
+LCredits:
+    LD DE, 256*0+5
+    LD (curRow), DE
+    LD HL, SCredits
+    bcall(_PutS)
+    bcall(_NewLine)
+
     RET
 
 ;========================================
 ;       ROUTINES                        ;
 ;========================================
+
+;========================================
+;       LOAD LEVEL                      ;
+;   INPUT   BC (LEVEL ID)               ;
+;   OUTPUT  NONE                        ;
+;========================================
+LoadLevel:
+    LD A, busyPause
+    LD (indicBusy), A
+    EI
+    bcall(_RunIndicOn)
+LFindLevelByID:
+    ;DEBUG..
+    LD HL, GCacheBuffer
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 255
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    INC HL
+    LD (HL), 1
+    
+LLoadLevel_End:
+    bcall(_RunIndicOff)
+    RET
 
 ;========================================
 ;       UPDATE INPUTS                   ;
@@ -262,14 +422,11 @@ UpdateCameraWorldCoords:
 
 ;========================================
 ;       UPDATE CAMERA VIEWPORT SIZE     ;
-;   INPUT   BC                          ;
+;   INPUT   BC (VIEWPORT SIZES)         ;
 ;   OUTPUT  NONE                        ;
 ;========================================
 UpdateCameraViewportSize:
-    LD HL, GCameraViewportSize
-    LD (HL), B
-    INC HL
-    LD (HL), C
+    LD (GCameraViewportSize), BC
     RET
 
 ;========================================
@@ -287,6 +444,64 @@ ClearGraphBuffer:
 ;   OUTPUT  NONE                        ;
 ;========================================
 DrawGraphBuffer:
+    LD HL, GCameraWorldCoords
+    LD B, (HL)
+
+    LD A, CACHE_LINE_LENGTH
+    ADD A, A
+    ADD A, A
+    ADD A, A
+    DEC A
+    SUB B
+    JP C, LDrawGraphBuffer_End
+
+    INC HL
+    LD C, (HL)
+
+    LD A, 128
+    DEC A
+    SUB C
+    JP C, LDrawGraphBuffer_End
+
+LDrawCacheLayer:
+    CALL ConvertWorldToCacheCoords
+    
+    LD H, 0
+    LD L, D
+    PUSH HL
+
+    LD B, 0
+    LD C, E
+    CALL LoadCacheLine
+
+    LD HL, GCameraWorldCoords
+    LD B, (HL)
+    LD C, 0
+    CALL ConvertWorldToBitDistance
+
+    POP HL
+    PUSH HL
+
+    LD B, 0
+    LD C, E
+    EX DE, HL
+    CALL ShiftCacheLine
+    ;CALL ShiftCacheLine_Optimized
+    
+    POP HL
+    PUSH HL
+
+    LD B, H
+    LD C, L
+    CALL CalculateCacheLineCopySize
+
+    LD B, D
+    LD C, E
+    POP HL
+    LD DE, 0
+    CALL CopyCacheLine
+    
+LDrawGraphBuffer_End:
     RET
 
 ;========================================
@@ -296,6 +511,34 @@ DrawGraphBuffer:
 ;========================================
 PresentGraphBuffer:
     bcall(_GrBufCpy)
+    RET
+
+;========================================
+;       CAPTURE SCREENSHOT              ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+CaptureScreenshot:
+    bcall(_SaveDisp)
+    RET
+
+;========================================
+;       CLEAR IMAGE BUFFER              ;
+;   INPUT   HL                          ;
+;   OUTPUT  NONE                        ;
+;========================================
+ClearImageBuffer:
+    bcall(_BufClr)
+    RET
+
+;========================================
+;       PRESENT IMAGE BUFFER            ;
+;   INPUT   HL                          ;
+;   OUTPUT  NONE                        ;
+;========================================
+PresentImageBuffer:
+    bcall(_BufCpy)
+    ;bcall(_DisplayImage) Same thing??
     RET
 
 ;========================================
@@ -312,9 +555,197 @@ ClearCacheBuffer:
     RET
 
 ;========================================
+;       LOAD CACHE LINE                 ;
+;   INPUT   BC (CACHE Y_COORD)          ;
+;   OUTPUT  NONE                        ;
+;========================================
+LoadCacheLine:
+    LD H, B
+    LD L, C
+    ;x12
+    ADD HL, BC
+    ADD HL, BC
+    ADD HL, HL
+    ADD HL, HL
+    ;x16
+    ;ADD HL, HL
+    ;ADD HL, HL
+    ;ADD HL, HL
+    ;ADD HL, HL
+
+    EX DE, HL
+
+    LD HL, GCacheBuffer
+    ADD HL, DE
+
+    LD DE, GCacheLine
+    LD BC, CACHE_LINE_LENGTH
+    LDIR
+    RET
+
+;========================================
+;       SHIFT CACHE LINE                ;
+;   INPUT   BC (0 | BIT DISTANCE)       ;
+;           DE (0 | CACHE X_COORD)      ;
+;   OUTPUT  NONE                        ;
+;========================================
+ShiftCacheLine:
+    LD A, C
+    CP 0
+    JR Z, LShiftCacheLine_End
+    
+    LD HL, GCacheLine
+    ADD HL, DE
+    LD A, CACHE_LINE_LENGTH
+    SUB E
+    LD B, A
+LShiftCacheLine_Loop1:
+    LD D, (HL)
+    INC HL
+    LD E, (HL)
+    
+    EX DE, HL
+    LD A, B;PUSH BC
+
+    LD B, C
+LShiftCacheLine_Loop2:
+    ADD HL, HL
+    DJNZ LShiftCacheLine_Loop2
+
+    LD B, A;POP BC
+    EX DE, HL
+    
+    DEC HL
+    LD (HL), D
+    INC HL
+    
+    DJNZ LShiftCacheLine_Loop1
+LShiftCacheLine_End:
+    RET
+
+;========================================
+;       SHIFT CACHE LINE OPTIMIZED      ;
+;   INPUT   BC (0 | BIT DISTANCE)       ;
+;           DE (0 | CACHE X_COORD)      ;
+;   OUTPUT  NONE                        ;
+;========================================
+ShiftCacheLine_Optimized:
+    LD A, C
+    CP 0
+    JR Z, LShiftCacheLine_Optimized_End
+    
+    EX DE, HL
+
+    LD A, 7
+    SUB C
+    LD D, 0
+    LD E, A
+    LD IX, LFastBitShift
+    ADD IX, DE
+
+    EX DE, HL
+
+    LD HL, GCacheLine
+    ADD HL, DE
+    LD A, CACHE_LINE_LENGTH
+    SUB E
+    LD B, A
+
+LShiftCacheLine_Optimized_Loop1:
+    LD D, (HL)
+    INC HL
+    LD E, (HL)
+    
+    EX DE, HL
+
+    JP (IX)
+LFastBitShift:
+LFastBitShift_7:
+    ADD HL, HL
+LFastBitShift_6:
+    ADD HL, HL
+LFastBitShift_5:
+    ADD HL, HL
+LFastBitShift_4:
+    ADD HL, HL
+LFastBitShift_3:
+    ADD HL, HL
+LFastBitShift_2:
+    ADD HL, HL
+LFastBitShift_1:
+    ADD HL, HL
+
+    EX DE, HL
+    
+    DEC HL
+    LD (HL), D
+    INC HL
+    
+    DJNZ LShiftCacheLine_Optimized_Loop1
+LShiftCacheLine_Optimized_End:
+    RET
+    
+;========================================
+;       CALCULATE CACHE LINE COPY SIZE  ;
+;   INPUT   BC (0 | CACHE X_COORD)      ;
+;   OUTPUT  DE (COPY SIZE)              ;
+;========================================
+CalculateCacheLineCopySize:
+    LD A, (GCameraWorldCoords)
+    LD D, A
+    LD A, (GCameraViewportSize)
+    LD E, A
+
+    LD A, D
+    ADD A, E
+    LD D, A
+
+    LD A, CACHE_LINE_LENGTH
+    ADD A, A
+    ADD A, A
+    ADD A, A
+    SUB D
+    JR C, LUseShiftCopySize
+LUseViewportCopySize:
+    LD A, E
+    SRA A
+    SRA A
+    SRA A
+    JR LCalculateCacheLineCopySize_End
+LUseShiftCopySize:
+    LD A, CACHE_LINE_LENGTH
+    SUB C
+LCalculateCacheLineCopySize_End:
+    LD D, 0
+    LD E, A
+    RET
+
+;========================================
+;       COPY CACHE LINE                 ;
+;   INPUT   BC (COPY SIZE)              ;
+;           HL (CACHE OFFSET)           ;
+;           DE (GRAPH OFFSET)           ;
+;   OUTPUT  NONE                        ;
+;========================================
+CopyCacheLine:
+    PUSH BC
+    LD B, H
+    LD C, L
+    LD HL, GCacheLine
+    ADD HL, BC
+    POP BC
+    PUSH HL
+    LD HL, _GraphBuffer
+    ADD HL, DE
+    EX DE, HL
+    POP HL
+    LDIR
+    RET
+
+;========================================
 ;       CONVERT WORLD TO SCREEN COORDS  ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (WORLD COORDS)           ;
+;   OUTPUT  DE (SCREEN COORDS)          ;
 ;========================================
 ConvertWorldToScreenCoords:
     LD HL, GCameraWorldCoords
@@ -329,8 +760,8 @@ ConvertWorldToScreenCoords:
 
 ;========================================
 ;       CONVERT WORLD TO GRID COORDS    ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (WORLD COORDS)           ;
+;   OUTPUT  DE (GRID COORDS)            ;
 ;========================================
 ConvertWorldToGridCoords:
     LD D, B
@@ -347,8 +778,8 @@ ConvertWorldToGridCoords:
 
 ;========================================
 ;       CONVERT WORLD TO CACHE COORDS   ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (WORLD COORDS)           ;
+;   OUTPUT  DE (CACHE COORDS)           ;
 ;========================================
 ConvertWorldToCacheCoords:
     LD D, B
@@ -360,8 +791,8 @@ ConvertWorldToCacheCoords:
 
 ;========================================
 ;       CONVERT WORLD TO MATRIX COORDS  ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (WORLD COORDS)           ;
+;   OUTPUT  DE (MATRIX COORDS)          ;
 ;========================================
 ConvertWorldToMatrixCoords:
     PUSH BC
@@ -379,9 +810,29 @@ ConvertWorldToMatrixCoords:
     RET
 
 ;========================================
+;       CONVERT WORLD TO BIT DISTANCE   ;
+;   INPUT   BC (X_COORD | Y_COORD)      ;
+;   OUTPUT  DE (0 | BIT DISTANCE)       ;
+;========================================
+ConvertWorldToBitDistance:
+    LD A, B
+    LD C, 8
+LBitDistance_Loop:
+    AND 11111000b
+    JR Z, LBitDistance_End
+    LD A, B
+    SUB C
+    LD B, A
+    JR LBitDistance_Loop
+LBitDistance_End:
+    LD D, 0
+    LD E, B
+    RET
+
+;========================================
 ;       CONVERT SCREEN TO WORLD COORDS  ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (SCREEN COORDS)          ;
+;   OUTPUT  DE (WORLD COORDS)           ;
 ;========================================
 ConvertScreenToWorldCoords:
     LD HL, GCameraWorldCoords
@@ -396,8 +847,8 @@ ConvertScreenToWorldCoords:
 
 ;========================================
 ;       CONVERT SCREEN TO GRID COORDS   ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (SCREEN COORDS)          ;
+;   OUTPUT  DE (GRID COORDS)            ;
 ;========================================
 ConvertScreenToGridCoords:
     CALL ConvertScreenToWorldCoords
@@ -408,8 +859,8 @@ ConvertScreenToGridCoords:
 
 ;========================================
 ;       CONVERT SCREEN TO CACHE COORDS  ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (SCREEN COORDS)          ;
+;   OUTPUT  DE (CACHE COORDS)           ;
 ;========================================
 ConvertScreenToCacheCoords:
     CALL ConvertScreenToWorldCoords
@@ -420,8 +871,8 @@ ConvertScreenToCacheCoords:
 
 ;========================================
 ;       CONVERT SCREEN TO MATRIX COORDS ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (SCREEN COORDS)          ;
+;   OUTPUT  DE (MATRIX COORDS)          ;
 ;========================================
 ConvertScreenToMatrixCoords:
     CALL ConvertScreenToWorldCoords
@@ -432,8 +883,8 @@ ConvertScreenToMatrixCoords:
 
 ;========================================
 ;       CONVERT GRID TO WORLD COORDS    ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (GRID COORDS)            ;
+;   OUTPUT  DE (WORLD COORDS)           ;
 ;========================================
 ConvertGridToWorldCoords:
     LD D, B
@@ -450,8 +901,8 @@ ConvertGridToWorldCoords:
 
 ;========================================
 ;       CONVERT GRID TO SCREEN  COORDS  ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (GRID COORDS)            ;
+;   OUTPUT  DE (SCREEN COORDS)          ;
 ;========================================
 ConvertGridToScreenCoords:
     CALL ConvertGridToWorldCoords
@@ -462,8 +913,8 @@ ConvertGridToScreenCoords:
 
 ;========================================
 ;       CONVERT CACHE TO WORLD COORDS   ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (CACHE COORDS)           ;
+;   OUTPUT  DE (WORLD COORDS)           ;
 ;========================================
 ConvertCacheToWorldCoords:
     LD D, B
@@ -475,8 +926,8 @@ ConvertCacheToWorldCoords:
 
 ;========================================
 ;       CONVERT CACHE TO SCREEN COORDS  ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (CACHE COORDS)           ;
+;   OUTPUT  DE (SCREEN COORDS)          ;
 ;========================================
 ConvertCacheToScreenCoords:
     CALL ConvertCacheToWorldCoords
@@ -487,8 +938,8 @@ ConvertCacheToScreenCoords:
 
 ;========================================
 ;       PACK MATRIX COORDS              ;       
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (MATRIX COORDS)          ;
+;   OUTPUT  DE (0 | BYTE)               ;
 ;========================================
 PackMatrixCoords:
     LD A, C
@@ -503,8 +954,8 @@ PackMatrixCoords:
 
 ;========================================
 ;       UNPACK MATRIX COORDS            ;
-;   INPUT   BC                          ;
-;   OUTPUT  DE                          ;
+;   INPUT   BC (0 | BYTE)               ;
+;   OUTPUT  DE (MATRIX COORDS)          ;
 ;========================================
 UnpackMatrixCoords:
     LD A, C
@@ -583,6 +1034,13 @@ GCacheLine:
     .FILL CACHE_LINE_LENGTH, (0)
 
 ;========================================
+;       CACHE LINE EXTRA BYTE           ;
+;   1B      RESERVED SPACE              ;
+;========================================
+GCacheLineExtraByte:
+    .DB 0
+
+;========================================
 ;       CACHE BUFFER                    ;
 ;   2KB     RESERVED SPACE              ;
 ;========================================
@@ -613,6 +1071,8 @@ SIntroPage0Row3:
     .DB "You need mana..", 0
 SIntroPage0Row4:
     .DB "Good luck mate.", 0
+SCredits:
+    .DB "Credits: Follow me on GitHub.com/ericnantel", 0
 
 .end
 .END
