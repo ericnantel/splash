@@ -14,6 +14,9 @@
 _JForceCmd          EQU 402Ah
 _HomeUp             EQU 4558h
 _GraphBuffer        EQU plotSScreen
+_SaveBuffer         EQU saveSScreen
+_AppBuffer          EQU appBackUpScreen
+_TmpBuffer          EQU tempSwapArea
 _KeyPort            EQU 01h
 KEYGROUP_BF         EQU 10111111b
 KEYGROUP_DF         EQU 11011111b
@@ -33,6 +36,9 @@ KEYCODE_FE          EQU 11111110b
 SCREEN_WIDTH        EQU 96
 SCREEN_HEIGHT       EQU 64
 GRAPH_BUFFER_LENGTH EQU 768
+SAVE_BUFFER_LENGTH  EQU 768
+APP_BUFFER_LENGTH   EQU 768
+TMP_BUFFER_LENGTH   EQU 323
 CACHE_LINE_LENGTH   EQU 12
 CACHE_BUFFER_LENGTH EQU 2048
 .LIST
@@ -484,6 +490,34 @@ LDrawGraphBuffer_End:
 ;========================================
 PresentGraphBuffer:
     bcall(_GrBufCpy)
+    RET
+
+;========================================
+;       CAPTURE SCREENSHOT              ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+CaptureScreenshot:
+    bcall(_SaveDisp)
+    RET
+
+;========================================
+;       CLEAR IMAGE BUFFER              ;
+;   INPUT   HL                          ;
+;   OUTPUT  NONE                        ;
+;========================================
+ClearImageBuffer:
+    bcall(_BufClr)
+    RET
+
+;========================================
+;       PRESENT IMAGE BUFFER            ;
+;   INPUT   HL                          ;
+;   OUTPUT  NONE                        ;
+;========================================
+PresentImageBuffer:
+    bcall(_BufCpy)
+    ;bcall(_DisplayImage) Same thing??
     RET
 
 ;========================================
