@@ -241,6 +241,12 @@ LExit:
     bcall(_RunIndicOn)
     LD A, 11111111b
     OUT (_KeyPort), A
+
+LClean:
+    LD (IY+textFlags), 0
+    bcall(_SetTblGraphDraw)
+    bcall(4C36h);bcall(_ReloadAppEntryVecs)
+    bjump(_JForceCmdNoChar)
     RET
 
 ;========================================
