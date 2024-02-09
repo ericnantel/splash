@@ -425,10 +425,7 @@ UpdateCameraWorldCoords:
 ;   OUTPUT  NONE                        ;
 ;========================================
 UpdateCameraViewportSize:
-    LD HL, GCameraViewportSize
-    LD (HL), B
-    INC HL
-    LD (HL), C
+    LD (GCameraViewportSize), BC
     RET
 
 ;========================================
