@@ -232,9 +232,13 @@ LCheckCameraDone:
     JP LMainLoop
 
 LExit:
+    LD A, busyNormal
+    LD (indicBusy), A
+    EI
     bcall(_ClrLCDFull)
     bcall(_HomeUp)
     bcall(_CursorOn)
+    bcall(_RunIndicOn)
     LD A, 11111111b
     OUT (_KeyPort), A
     RET
@@ -249,6 +253,9 @@ LExit:
 ;   OUTPUT  NONE                        ;
 ;========================================
 LoadLevel:
+    LD A, busyPause
+    LD (indicBusy), A
+    EI
     bcall(_RunIndicOn)
 LFindLevelByID:
     ;DEBUG..
