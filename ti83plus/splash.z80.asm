@@ -579,20 +579,22 @@ ShiftCacheLine_Optimized:
     CP 0
     JR Z, LShiftCacheLine_Optimized_End
     
+    EX DE, HL
+
+    LD A, 7
+    SUB C
+    LD D, 0
+    LD E, A
+    LD IX, LFastBitShift
+    ADD IX, DE
+
+    EX DE, HL
+
     LD HL, GCacheLine
     ADD HL, DE
     LD A, CACHE_LINE_LENGTH
     SUB E
     LD B, A
-
-    PUSH BC
-    LD A, 7
-    SUB C
-    LD B, 0
-    LD C, A
-    LD IX, LFastBitShift
-    ADD IX, BC
-    POP BC
 
 LShiftCacheLine_Optimized_Loop1:
     LD D, (HL)
