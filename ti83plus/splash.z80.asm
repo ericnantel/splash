@@ -459,6 +459,7 @@ LDrawCacheLayer:
     LD C, E
     EX DE, HL
     CALL ShiftCacheLine
+    ;CALL ShiftCacheLine_Optimized
     
     POP HL
     PUSH HL
@@ -567,6 +568,66 @@ LShiftCacheLine_Loop2:
 LShiftCacheLine_End:
     RET
 
+;========================================
+;       SHIFT CACHE LINE OPTIMIZED      ;
+;   INPUT   BC (0 | BIT DISTANCE)       ;
+;           DE (0 | CACHE X_COORD)      ;
+;   OUTPUT  NONE                        ;
+;========================================
+ShiftCacheLine_Optimized:
+    LD A, C
+    CP 0
+    JR Z, LShiftCacheLine_Optimized_End
+    
+    LD HL, GCacheLine
+    ADD HL, DE
+    LD A, CACHE_LINE_LENGTH
+    SUB E
+    LD B, A
+
+    PUSH BC
+    LD A, 7
+    SUB C
+    LD B, 0
+    LD C, A
+    LD IX, LFastBitShift
+    ADD IX, BC
+    POP BC
+
+LShiftCacheLine_Optimized_Loop1:
+    LD D, (HL)
+    INC HL
+    LD E, (HL)
+    
+    EX DE, HL
+
+    JP (IX)
+LFastBitShift:
+LFastBitShift_7:
+    ADD HL, HL
+LFastBitShift_6:
+    ADD HL, HL
+LFastBitShift_5:
+    ADD HL, HL
+LFastBitShift_4:
+    ADD HL, HL
+LFastBitShift_3:
+    ADD HL, HL
+LFastBitShift_2:
+    ADD HL, HL
+LFastBitShift_1:
+    ADD HL, HL
+
+    EX DE, HL
+    
+    DEC HL
+    LD (HL), D
+    INC HL
+    
+    DJNZ LShiftCacheLine_Optimized_Loop1
+LShiftCacheLine_Optimized_End:
+    RET
+    
 ;========================================
 ;       CALCULATE CACHE LINE COPY SIZE  ;
 ;   INPUT   BC (0 | CACHE X_COORD)      ;
