@@ -340,8 +340,6 @@ LLoadLevel_End:
 ;   OUTPUT  NONE                        ;
 ;========================================
 UpdateInputs:
-    PUSH AF
-    PUSH BC
     LD C, 0
 LReadKeyGroupFE:
     LD A, KEYGROUP_FE
@@ -396,8 +394,6 @@ LTestKeyPressedDel:
 LWriteInputs:
     LD HL, GInputs
     LD (HL), C
-    POP BC
-    POP AF
     RET
 
 ;========================================
