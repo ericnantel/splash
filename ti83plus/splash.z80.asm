@@ -627,9 +627,7 @@ LoadCacheLine:
     ;ADD HL, HL
     ;ADD HL, HL
 
-    EX DE, HL
-
-    LD HL, GCacheBuffer
+    LD DE, GCacheBuffer
     ADD HL, DE
 
     LD DE, GCacheLine
