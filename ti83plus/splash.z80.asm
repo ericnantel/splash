@@ -39,7 +39,8 @@ GRAPH_BUFFER_LENGTH EQU 768
 SAVE_BUFFER_LENGTH  EQU 768
 APP_BUFFER_LENGTH   EQU 768
 TMP_BUFFER_LENGTH   EQU 323
-CACHE_LINE_LENGTH   EQU 12
+CACHE_LINE_LENGTH   EQU 12;16
+CACHE_HEIGHT        EQU 128
 CACHE_BUFFER_LENGTH EQU 2048
 .LIST
     
@@ -158,9 +159,9 @@ LMainIntro_Loop:
 
     JR LMainIntro_Loop
 
-LMainLoop:
     bcall(_ClrLCDFull)
 
+LMainLoop:
     CALL UpdateInputs
 
     LD HL, GInputs
@@ -340,8 +341,6 @@ LLoadLevel_End:
 ;   OUTPUT  NONE                        ;
 ;========================================
 UpdateInputs:
-    PUSH AF
-    PUSH BC
     LD C, 0
 LReadKeyGroupFE:
     LD A, KEYGROUP_FE
@@ -396,8 +395,6 @@ LTestKeyPressedDel:
 LWriteInputs:
     LD HL, GInputs
     LD (HL), C
-    POP BC
-    POP AF
     RET
 
 ;========================================
@@ -444,6 +441,8 @@ ClearGraphBuffer:
 ;   OUTPUT  NONE                        ;
 ;========================================
 DrawGraphBuffer:
+
+LDrawCacheLayer:
     LD HL, GCameraWorldCoords
     LD B, (HL)
 
@@ -458,17 +457,39 @@ DrawGraphBuffer:
     INC HL
     LD C, (HL)
 
-    LD A, 128
+    LD A, CACHE_HEIGHT
     DEC A
     SUB C
     JP C, LDrawGraphBuffer_End
 
-LDrawCacheLayer:
-    CALL ConvertWorldToCacheCoords
+    LD HL, GCameraViewportSize
+    LD D, (HL)
+    INC HL
+    LD E, (HL)
+
+    SUB E
+    JR NC, LCalculateRowCount_End
+    LD A, CACHE_HEIGHT
+    DEC A
+    SUB C
+    LD E, A
+LCalculateRowCount_End:
+    LD B, E
+    LD C, 0
+
+LDrawScreenRow_Loop:
+    PUSH BC
+
+    LD HL, GCameraWorldCoords
+    LD B, (HL)
+    INC HL
+
+    LD A, (HL)
+    ADD A, C
+    LD C, A
     
-    LD H, 0
-    LD L, D
-    PUSH HL
+    CALL ConvertWorldToCacheCoords
+    PUSH DE
 
     LD B, 0
     LD C, E
@@ -479,28 +500,58 @@ LDrawCacheLayer:
     LD C, 0
     CALL ConvertWorldToBitDistance
 
-    POP HL
+    EX DE, HL
+    POP DE
+    PUSH DE
+
+    LD B, 0
+    LD C, L
+    LD E, D
+    LD D, 0
+    CALL ShiftCacheLine
+    ;CALL ShiftCacheLine_Optimized
+
+    POP IX
+    POP BC
+    PUSH BC
+    PUSH IX
+
+    LD B, C
+    LD HL, 0
+    LD A, B
+    CP 0
+    JR Z, LCalculateGraphOffset_End
+
+    LD A, (GCameraViewportSize)
+    SRA A
+    SRA A
+    SRA A
+    LD D, 0
+    LD E, A
+LCalculateGraphOffset_Loop:
+    ADD HL, DE
+    DJNZ LCalculateGraphOffset_Loop
+LCalculateGraphOffset_End:
+    POP DE
+    PUSH DE
     PUSH HL
 
     LD B, 0
-    LD C, E
-    EX DE, HL
-    CALL ShiftCacheLine
-    ;CALL ShiftCacheLine_Optimized
-    
-    POP HL
-    PUSH HL
-
-    LD B, H
-    LD C, L
+    LD C, D
+    PUSH BC
     CALL CalculateCacheLineCopySize
 
     LD B, D
     LD C, E
     POP HL
-    LD DE, 0
+    POP DE
     CALL CopyCacheLine
-    
+
+    POP IX
+    POP BC
+    INC C
+    DJNZ LDrawScreenRow_Loop
+
 LDrawGraphBuffer_End:
     RET
 
@@ -573,9 +624,7 @@ LoadCacheLine:
     ;ADD HL, HL
     ;ADD HL, HL
 
-    EX DE, HL
-
-    LD HL, GCacheBuffer
+    LD DE, GCacheBuffer
     ADD HL, DE
 
     LD DE, GCacheLine
@@ -723,22 +772,19 @@ LCalculateCacheLineCopySize_End:
 ;========================================
 ;       COPY CACHE LINE                 ;
 ;   INPUT   BC (COPY SIZE)              ;
-;           HL (CACHE OFFSET)           ;
+;           HL (CACHE LINE OFFSET)      ;
 ;           DE (GRAPH OFFSET)           ;
 ;   OUTPUT  NONE                        ;
 ;========================================
 CopyCacheLine:
     PUSH BC
-    LD B, H
-    LD C, L
-    LD HL, GCacheLine
+    LD BC, GCacheLine
     ADD HL, BC
-    POP BC
-    PUSH HL
-    LD HL, _GraphBuffer
-    ADD HL, DE
     EX DE, HL
-    POP HL
+    LD BC, _GraphBuffer
+    ADD HL, BC
+    EX DE, HL
+    POP BC
     LDIR
     RET
 
@@ -811,7 +857,7 @@ ConvertWorldToMatrixCoords:
 
 ;========================================
 ;       CONVERT WORLD TO BIT DISTANCE   ;
-;   INPUT   BC (X_COORD | Y_COORD)      ;
+;   INPUT   BC (X_COORD | 0)            ;
 ;   OUTPUT  DE (0 | BIT DISTANCE)       ;
 ;========================================
 ConvertWorldToBitDistance:
