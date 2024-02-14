@@ -158,9 +158,9 @@ LMainIntro_Loop:
 
     JR LMainIntro_Loop
 
-LMainLoop:
     bcall(_ClrLCDFull)
 
+LMainLoop:
     CALL UpdateInputs
 
     LD HL, GInputs
