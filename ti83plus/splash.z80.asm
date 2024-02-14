@@ -444,6 +444,8 @@ ClearGraphBuffer:
 ;   OUTPUT  NONE                        ;
 ;========================================
 DrawGraphBuffer:
+
+LDrawCacheLayer:
     LD HL, GCameraWorldCoords
     LD B, (HL)
 
@@ -463,12 +465,34 @@ DrawGraphBuffer:
     SUB C
     JP C, LDrawGraphBuffer_End
 
-LDrawCacheLayer:
-    CALL ConvertWorldToCacheCoords
+    LD HL, GCameraViewportSize
+    LD D, (HL)
+    INC HL
+    LD E, (HL)
+
+    SUB E
+    JR NC, LCalculateRowCount_End
+    LD A, 128
+    DEC A
+    SUB C
+    LD E, A
+LCalculateRowCount_End:
+    LD B, E
+    LD C, 0
+
+LDrawScreenRow_Loop:
+    PUSH BC
+
+    LD HL, GCameraWorldCoords
+    LD B, (HL)
+    INC HL
+
+    LD A, (HL)
+    ADD A, C
+    LD C, A
     
-    LD H, 0
-    LD L, D
-    PUSH HL
+    CALL ConvertWorldToCacheCoords
+    PUSH DE
 
     LD B, 0
     LD C, E
@@ -479,28 +503,58 @@ LDrawCacheLayer:
     LD C, 0
     CALL ConvertWorldToBitDistance
 
-    POP HL
+    EX DE, HL
+    POP DE
+    PUSH DE
+
+    LD B, 0
+    LD C, L
+    LD E, D
+    LD D, 0
+    CALL ShiftCacheLine
+    ;CALL ShiftCacheLine_Optimized
+
+    POP IX
+    POP BC
+    PUSH BC
+    PUSH IX
+
+    LD B, C
+    LD HL, 0
+    LD A, B
+    CP 0
+    JR Z, LCalculateGraphOffset_End
+
+    LD A, (GCameraViewportSize)
+    SRA A
+    SRA A
+    SRA A
+    LD D, 0
+    LD E, A
+LCalculateGraphOffset_Loop:
+    ADD HL, DE
+    DJNZ LCalculateGraphOffset_Loop
+LCalculateGraphOffset_End:
+    POP DE
+    PUSH DE
     PUSH HL
 
     LD B, 0
-    LD C, E
-    EX DE, HL
-    CALL ShiftCacheLine
-    ;CALL ShiftCacheLine_Optimized
-    
-    POP HL
-    PUSH HL
-
-    LD B, H
-    LD C, L
+    LD C, D
+    PUSH BC
     CALL CalculateCacheLineCopySize
 
     LD B, D
     LD C, E
     POP HL
-    LD DE, 0
+    POP DE
     CALL CopyCacheLine
-    
+
+    POP IX
+    POP BC
+    INC C
+    DJNZ LDrawScreenRow_Loop
+
 LDrawGraphBuffer_End:
     RET
 
@@ -723,7 +777,7 @@ LCalculateCacheLineCopySize_End:
 ;========================================
 ;       COPY CACHE LINE                 ;
 ;   INPUT   BC (COPY SIZE)              ;
-;           HL (CACHE OFFSET)           ;
+;           HL (CACHE LINE OFFSET)      ;
 ;           DE (GRAPH OFFSET)           ;
 ;   OUTPUT  NONE                        ;
 ;========================================
@@ -811,7 +865,7 @@ ConvertWorldToMatrixCoords:
 
 ;========================================
 ;       CONVERT WORLD TO BIT DISTANCE   ;
-;   INPUT   BC (X_COORD | Y_COORD)      ;
+;   INPUT   BC (X_COORD | 0)            ;
 ;   OUTPUT  DE (0 | BIT DISTANCE)       ;
 ;========================================
 ConvertWorldToBitDistance:
