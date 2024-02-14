@@ -783,16 +783,13 @@ LCalculateCacheLineCopySize_End:
 ;========================================
 CopyCacheLine:
     PUSH BC
-    LD B, H
-    LD C, L
-    LD HL, GCacheLine
+    LD BC, GCacheLine
     ADD HL, BC
-    POP BC
-    PUSH HL
-    LD HL, _GraphBuffer
-    ADD HL, DE
     EX DE, HL
-    POP HL
+    LD BC, _GraphBuffer
+    ADD HL, BC
+    EX DE, HL
+    POP BC
     LDIR
     RET
 
