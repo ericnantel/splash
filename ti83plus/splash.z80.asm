@@ -40,6 +40,7 @@ SAVE_BUFFER_LENGTH  EQU 768
 APP_BUFFER_LENGTH   EQU 768
 TMP_BUFFER_LENGTH   EQU 323
 CACHE_LINE_LENGTH   EQU 12;16
+CACHE_WIDTH         EQU CACHE_LINE_LENGTH*8
 CACHE_HEIGHT        EQU 128
 CACHE_BUFFER_LENGTH EQU 2048
 .LIST
@@ -446,10 +447,7 @@ LDrawCacheLayer:
     LD HL, GCameraWorldCoords
     LD B, (HL)
 
-    LD A, CACHE_LINE_LENGTH
-    ADD A, A
-    ADD A, A
-    ADD A, A
+    LD A, CACHE_WIDTH
     DEC A
     SUB B
     JP C, LDrawGraphBuffer_End
@@ -749,10 +747,7 @@ CalculateCacheLineCopySize:
     ADD A, E
     LD D, A
 
-    LD A, CACHE_LINE_LENGTH
-    ADD A, A
-    ADD A, A
-    ADD A, A
+    LD A, CACHE_WIDTH
     SUB D
     JR C, LUseShiftCopySize
 LUseViewportCopySize:
