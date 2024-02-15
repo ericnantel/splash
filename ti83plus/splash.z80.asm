@@ -460,17 +460,6 @@ LDrawCacheLayer:
     CALL CalculateCacheLineDrawCalls
     LD B, E
     LD C, 0
-;     LD HL, GCameraViewportSize+1
-;     LD E, (HL)
-
-;     SUB E
-
-;     JR NC, LCalculateRowCount_End
-;     ADD A, E
-;     LD E, A
-; LCalculateRowCount_End:
-;     LD B, E
-;     LD C, 0
 
 LDrawScreenRow_Loop:
     PUSH BC
