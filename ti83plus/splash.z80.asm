@@ -447,16 +447,14 @@ LDrawCacheLayer:
     LD HL, GCameraWorldCoords
     LD B, (HL)
 
-    LD A, CACHE_WIDTH
-    DEC A
+    LD A, CACHE_WIDTH-1
     SUB B
     JP C, LDrawGraphBuffer_End
 
     INC HL
     LD C, (HL)
 
-    LD A, CACHE_HEIGHT
-    DEC A
+    LD A, CACHE_HEIGHT-1
     SUB C
     JP C, LDrawGraphBuffer_End
 
@@ -467,8 +465,7 @@ LDrawCacheLayer:
 
     SUB E
     JR NC, LCalculateRowCount_End
-    LD A, CACHE_HEIGHT
-    DEC A
+    LD A, CACHE_HEIGHT-1
     SUB C
     LD E, A
 LCalculateRowCount_End:
