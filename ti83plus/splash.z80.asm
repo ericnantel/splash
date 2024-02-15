@@ -446,31 +446,31 @@ DrawGraphBuffer:
 LDrawCacheLayer:
     LD HL, GCameraWorldCoords
     LD B, (HL)
+    INC HL
+    LD C, (HL)
 
     LD A, CACHE_WIDTH-1
     SUB B
     JP C, LDrawGraphBuffer_End
 
-    INC HL
-    LD C, (HL)
-
     LD A, CACHE_HEIGHT-1
     SUB C
     JP C, LDrawGraphBuffer_End
 
-    LD HL, GCameraViewportSize
-    LD D, (HL)
-    INC HL
-    LD E, (HL)
-
-    SUB E
-    JR NC, LCalculateRowCount_End
-    LD A, CACHE_HEIGHT-1
-    SUB C
-    LD E, A
-LCalculateRowCount_End:
+    CALL CalculateCacheLineDrawCalls
     LD B, E
     LD C, 0
+;     LD HL, GCameraViewportSize+1
+;     LD E, (HL)
+
+;     SUB E
+
+;     JR NC, LCalculateRowCount_End
+;     ADD A, E
+;     LD E, A
+; LCalculateRowCount_End:
+;     LD B, E
+;     LD C, 0
 
 LDrawScreenRow_Loop:
     PUSH BC
@@ -728,7 +728,34 @@ LFastBitShift_1:
     DJNZ LShiftCacheLine_Optimized_Loop1
 LShiftCacheLine_Optimized_End:
     RET
-    
+
+;========================================
+;       CALCULATE CACHE LINE DRAW CALLS ;
+;   INPUT   NONE                        ;
+;   OUTPUT  DE (0 | DRAW CALLS)         ;
+;========================================
+CalculateCacheLineDrawCalls:
+    LD HL, GCameraWorldCoords+1
+    LD DE, GCameraViewportSize+1
+    LD A, (HL)
+    EX DE, HL
+    ADD A, (HL)
+    SUB CACHE_HEIGHT-1
+
+    JR C, LCalculateMaxDrawCalls
+    EX DE, HL
+    LD E, (HL)
+    LD A, CACHE_HEIGHT-1
+    SUB E
+    LD D, 0
+    LD E, A
+    JR LCalculateCLDrawCalls_End
+LCalculateMaxDrawCalls:
+    LD D, 0
+    LD E, (HL)
+LCalculateCLDrawCalls_End:
+    RET
+
 ;========================================
 ;       CALCULATE CACHE LINE COPY SIZE  ;
 ;   INPUT   BC (0 | CACHE X_COORD)      ;
