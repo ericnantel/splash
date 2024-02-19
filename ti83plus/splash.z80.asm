@@ -344,6 +344,8 @@ LLoadLevel_End:
 UpdateInputs:
     LD C, 0
 LReadKeyGroupFE:
+    LD A, 11111111b
+    OUT (_KeyPort), A
     LD A, KEYGROUP_FE
     OUT (_KeyPort), A
     NOP
@@ -366,6 +368,8 @@ LTestKeyPressedUp:
     JR Z, LReadKeyGroupDF
     SET 3, C
 LReadKeyGroupDF:
+    LD A, 11111111b
+    OUT (_KeyPort), A
     LD A, KEYGROUP_DF
     OUT (_KeyPort), A
     NOP
@@ -376,6 +380,8 @@ LTestKeyPressedAlpha:
     JR Z, LReadKeyGroupBF
     SET 4, C
 LReadKeyGroupBF:
+    LD A, 11111111b
+    OUT (_KeyPort), A
     LD A, KEYGROUP_BF
     OUT (_KeyPort), A
     NOP
