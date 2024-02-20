@@ -222,15 +222,15 @@ LMoveCameraUp:
 LDecViewportX:
     LD HL, GCameraViewportSize
     LD A, (HL)
-    CP 1
-    JR Z, LCheckCameraViewportY
+    ;CP 1
+    ;JR Z, LCheckCameraViewportY
     DEC (HL)
     JR LCheckCameraViewportY
 LDecViewportY:
     LD HL, GCameraViewportSize+1
     LD A, (HL)
-    CP 1
-    JR Z, LCheckCameraDone
+    ;CP 1
+    ;JR Z, LCheckCameraDone
     DEC (HL)
 
 LCheckCameraDone:
@@ -416,8 +416,27 @@ ClearGraphBuffer:
 ;   OUTPUT  NONE                        ;
 ;========================================
 DrawGraphBuffer:
+    LD HL, GCameraViewportSize
+    LD B, (HL)
+    INC HL
+    LD C, (HL)
 
-LDrawCacheLayer:
+    LD A, B
+    SUB 8
+    RET C
+
+    LD A, C
+    SUB 1
+    RET C
+
+    LD A, SCREEN_WIDTH
+    SUB B
+    RET C
+
+    LD A, SCREEN_HEIGHT
+    SUB C
+    RET C
+
     LD HL, GCameraWorldCoords
     LD B, (HL)
     INC HL
@@ -425,12 +444,13 @@ LDrawCacheLayer:
 
     LD A, CACHE_WIDTH-1
     SUB B
-    JP C, LDrawGraphBuffer_End
+    RET C
 
     LD A, CACHE_HEIGHT-1
     SUB C
-    JP C, LDrawGraphBuffer_End
+    RET C
 
+LDrawCacheLayer:
     CALL CalculateCacheLineDrawCalls
     LD B, E
     LD C, 0
@@ -508,8 +528,8 @@ LCalculateGraphOffset_End:
     POP BC
     INC C
     DJNZ LDrawScreenRow_Loop
+LDrawCacheLayer_End:
 
-LDrawGraphBuffer_End:
     RET
 
 ;========================================
