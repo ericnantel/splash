@@ -474,19 +474,21 @@ LDrawScreenRow_Loop:
     PUSH BC
     PUSH IX
 
-    LD B, C
+LCalculateGraphOffset:
+    LD A, C
     LD HL, 0
-    LD A, B
     CP 0
     JR Z, LCalculateGraphOffset_End
-
-    LD A, SCREEN_LINE_LENGTH
-    LD D, 0
-    LD E, A
-LCalculateGraphOffset_Loop:
-    ADD HL, DE
-    DJNZ LCalculateGraphOffset_Loop
+    LD B, 0
+    ;x12 (SCREEN_LINE_LENGTH)
+    LD H, B
+    LD L, C
+    ADD HL, BC
+    ADD HL, BC
+    ADD HL, HL
+    ADD HL, HL
 LCalculateGraphOffset_End:
+
     POP DE
     PUSH DE
     PUSH HL
@@ -568,12 +570,12 @@ ClearCacheBuffer:
 LoadCacheLine:
     LD H, B
     LD L, C
-    ;x12
+    ;x12 (CACHE_LINE_LENGTH)
     ADD HL, BC
     ADD HL, BC
     ADD HL, HL
     ADD HL, HL
-    ;x16
+    ;x16 (CACHE_LINE_LENGTH)
     ;ADD HL, HL
     ;ADD HL, HL
     ;ADD HL, HL
