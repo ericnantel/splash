@@ -19,7 +19,8 @@ starting_directory=$(cd $(dirname $0) && pwd)
 directory="ti83plus"
 filename="splash"
 include_file="ti83plus.inc"
-source_file=${filename}.z80.asm
+source_file=${filename}.code.z80.asm
+data_file=${filename}.data.z80.asm
 binary_file=${filename}.bin
 listing_file=${filename}.lst
 export_file=${filename}.8xp
@@ -30,9 +31,11 @@ echo assemble..
 cd ${directory}
 cp ${include_file} ..
 cp ${source_file} ..
+cp ${data_file} ..
 cd ..
 mv ${include_file} toolchain/tasm
 mv ${source_file} toolchain/tasm
+mv ${data_file} toolchain/tasm
 cd toolchain/tasm
 #if not exist TASM.EXE goto missing_assembler
 wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
@@ -42,6 +45,7 @@ echo preparing..
 #PREPARE
 mv ${include_file} ../cache
 mv ${source_file} ../cache
+mv ${data_file} ../cache
 #if not exist ${binary_file} goto fail_assemble
 cp ${binary_file} ../cache
 mv ${binary_file} ../devpac8x
