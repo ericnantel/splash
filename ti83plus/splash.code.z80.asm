@@ -63,30 +63,42 @@ LStart:
 LMainMenu:
     bcall(_ClrLCDFull)
 
-    LD DE, 256*5+0
+    LD HL, ISplashScreen
+    CALL PresentImageBuffer
+
+    SET textInverse, (IY+textFlags)
+
+    ; LD DE, 256*5+0
+    ; LD (curRow), DE
+    ; LD HL, STitle
+    ; bcall(_PutS)
+    
+    ; LD DE, 256*1+3
+    ; LD (curRow), DE
+    ; LD HL, SVersion
+    ; bcall(_PutS)
+
+    ; LD DE, 256*1+4
+    ; LD (curRow), DE
+    ; LD HL, SAuthor
+    ; bcall(_PutS)
+
+    ; LD DE, 256*0+6
+    ; LD (curRow), DE
+    ; LD HL, SPress2nd
+    ; bcall(_PutS)
+
+    ; LD DE, 256*0+7
+    ; LD (curRow), DE
+    ; LD HL, SPressDel
+    ; bcall(_PutS)
+
+    LD DE, 256*5+7
     LD (curRow), DE
     LD HL, STitle
     bcall(_PutS)
-    
-    LD DE, 256*1+3
-    LD (curRow), DE
-    LD HL, SVersion
-    bcall(_PutS)
 
-    LD DE, 256*1+4
-    LD (curRow), DE
-    LD HL, SAuthor
-    bcall(_PutS)
-
-    LD DE, 256*0+6
-    LD (curRow), DE
-    LD HL, SPress2nd
-    bcall(_PutS)
-
-    LD DE, 256*0+7
-    LD (curRow), DE
-    LD HL, SPressDel
-    bcall(_PutS)
+    RES textInverse, (IY+textFlags)
 
 LMainMenu_Loop:
     LD A, KEYGROUP_BF
