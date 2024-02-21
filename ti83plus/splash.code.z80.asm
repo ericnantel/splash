@@ -237,18 +237,18 @@ LDecViewportY:
 LCheckCameraDone:
 
     ;DEBUG
-    ;LD IX, GCameraWorldCoords
-    LD IX, GCameraViewportSize
-    LD DE, 256*0+5
-    LD (curRow), DE
-    LD H, 0
-    LD L, (IX+0)
-    bcall(_DispHL)
-    LD DE, 256*0+6
-    LD (curRow), DE
-    LD H, 0
-    LD L, (IX+1)
-    bcall(_DispHL)
+    ; LD IX, GCameraWorldCoords
+    ; LD IX, GCameraViewportSize
+    ; LD DE, 256*0+5
+    ; LD (curRow), DE
+    ; LD H, 0
+    ; LD L, (IX+0)
+    ; bcall(_DispHL)
+    ; LD DE, 256*0+6
+    ; LD (curRow), DE
+    ; LD H, 0
+    ; LD L, (IX+1)
+    ; bcall(_DispHL)
 
     CALL Render
 
@@ -296,7 +296,7 @@ LoadLevel:
     bcall(_RunIndicOn)
 LFindLevelByID:
     ;DEBUG..
-    LD HL, Image1_Layer1
+    LD HL, ISplashScreen
     LD DE, GCacheBuffer
     LD BC, GRAPH_BUFFER_LENGTH
     LDIR
