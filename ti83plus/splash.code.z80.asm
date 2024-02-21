@@ -2,7 +2,7 @@
 ;========================================
 ;       PROGRAM SPLASH                  ;
 ;       VERSION 1.0.0                   ;
-;       MAIN ASSEMBLY FILE              ;
+;       CODE ASSEMBLY FILE              ;
 ;       AUTHOR ERIC NANTEL              ;
 ;       COPYRIGHT 2023-2024             ;
 ;========================================
