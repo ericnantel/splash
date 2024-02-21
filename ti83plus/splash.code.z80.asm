@@ -63,30 +63,42 @@ LStart:
 LMainMenu:
     bcall(_ClrLCDFull)
 
-    LD DE, 256*5+0
+    LD HL, ISplashScreen
+    CALL PresentImageBuffer
+
+    SET textInverse, (IY+textFlags)
+
+    ; LD DE, 256*5+0
+    ; LD (curRow), DE
+    ; LD HL, STitle
+    ; bcall(_PutS)
+    
+    ; LD DE, 256*1+3
+    ; LD (curRow), DE
+    ; LD HL, SVersion
+    ; bcall(_PutS)
+
+    ; LD DE, 256*1+4
+    ; LD (curRow), DE
+    ; LD HL, SAuthor
+    ; bcall(_PutS)
+
+    ; LD DE, 256*0+6
+    ; LD (curRow), DE
+    ; LD HL, SPress2nd
+    ; bcall(_PutS)
+
+    ; LD DE, 256*0+7
+    ; LD (curRow), DE
+    ; LD HL, SPressDel
+    ; bcall(_PutS)
+
+    LD DE, 256*5+7
     LD (curRow), DE
     LD HL, STitle
     bcall(_PutS)
-    
-    LD DE, 256*1+3
-    LD (curRow), DE
-    LD HL, SVersion
-    bcall(_PutS)
 
-    LD DE, 256*1+4
-    LD (curRow), DE
-    LD HL, SAuthor
-    bcall(_PutS)
-
-    LD DE, 256*0+6
-    LD (curRow), DE
-    LD HL, SPress2nd
-    bcall(_PutS)
-
-    LD DE, 256*0+7
-    LD (curRow), DE
-    LD HL, SPressDel
-    bcall(_PutS)
+    RES textInverse, (IY+textFlags)
 
 LMainMenu_Loop:
     LD A, KEYGROUP_BF
@@ -237,18 +249,18 @@ LDecViewportY:
 LCheckCameraDone:
 
     ;DEBUG
-    ;LD IX, GCameraWorldCoords
-    LD IX, GCameraViewportSize
-    LD DE, 256*0+5
-    LD (curRow), DE
-    LD H, 0
-    LD L, (IX+0)
-    bcall(_DispHL)
-    LD DE, 256*0+6
-    LD (curRow), DE
-    LD H, 0
-    LD L, (IX+1)
-    bcall(_DispHL)
+    ; LD IX, GCameraWorldCoords
+    ; LD IX, GCameraViewportSize
+    ; LD DE, 256*0+5
+    ; LD (curRow), DE
+    ; LD H, 0
+    ; LD L, (IX+0)
+    ; bcall(_DispHL)
+    ; LD DE, 256*0+6
+    ; LD (curRow), DE
+    ; LD H, 0
+    ; LD L, (IX+1)
+    ; bcall(_DispHL)
 
     CALL Render
 
@@ -296,7 +308,7 @@ LoadLevel:
     bcall(_RunIndicOn)
 LFindLevelByID:
     ;DEBUG..
-    LD HL, Image1_Layer1
+    LD HL, ISplashScreen
     LD DE, GCacheBuffer
     LD BC, GRAPH_BUFFER_LENGTH
     LDIR
