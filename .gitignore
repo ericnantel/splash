@@ -9,5 +9,7 @@
 /toolchain/cache/
 /toolchain/devpac8x/
 /toolchain/tasm/
+/toolchain/binaries/
+/toolchain/jpeg2bin/build/
 /toolchain/thirdparty/binaries/
 /toolchain/thirdparty/libjpeg-turbo/build/
