@@ -8,6 +8,7 @@
         "**/toolchain/cache": true,
         "**/toolchain/devpac8x": true,
         "**/toolchain/tasm": true,
+        "**/toolchain/thirdparty/binaries": true,
         "**/toolchain/thirdparty/libjpeg-turbo/build": true,
     },
     "files.exclude": {
@@ -19,6 +20,7 @@
         "**/toolchain/cache": true,
         "**/toolchain/devpac8x": true,
         "**/toolchain/tasm": true,
+        "**/toolchain/thirdparty/binaries": true,
         "**/toolchain/thirdparty/libjpeg-turbo/build": true,
     }
 }
