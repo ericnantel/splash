@@ -1,3 +1,4 @@
 [submodule "toolchain/thirdparty/libjpeg-turbo"]
 	path = toolchain/thirdparty/libjpeg-turbo
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo
+	ignore = dirty
