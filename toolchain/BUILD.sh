@@ -11,7 +11,7 @@ echo
 cd jpeg2bin
 mkdir -p build
 cd build
-cmake .. -DWITH_JPEG8=ON
+cmake .. -DWITH_JPEG8=OFF -DWITH_JPEG7=OFF
 cmake --build . --config Debug
 
 echo 
