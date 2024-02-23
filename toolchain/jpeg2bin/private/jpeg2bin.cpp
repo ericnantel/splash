@@ -19,9 +19,13 @@ namespace Splash
             {
                 const auto imgSrcPath = args.At(1);
                 const auto imgDstPath = args.At(2);
+                const auto imgDstFormat = args.At(3);
 
+                const char* fileOpenMode;
                 FILE* fileHandle;
-                fileHandle = fopen(std::string(imgSrcPath).c_str(), "rb");
+
+                fileOpenMode = "rb";
+                fileHandle = fopen(std::string(imgSrcPath).c_str(), fileOpenMode);
                 if (fileHandle == NULL)
                 {
                     std::cout << "Cannot open jpeg file..." << imgSrcPath << std::endl;
@@ -59,7 +63,8 @@ namespace Splash
                 fclose(fileHandle);
                 fileHandle = NULL;
 
-                fileHandle = fopen(std::string(imgDstPath).c_str(), "w+b");
+                fileOpenMode = (imgDstFormat == "Z80") ? "w+" : "w+b";
+                fileHandle = fopen(std::string(imgDstPath).c_str(), fileOpenMode);
                 if (fileHandle == NULL)
                 {
                     std::cout << "Cannot open binary file..." << imgDstPath << std::endl;
@@ -100,43 +105,106 @@ namespace Splash
                 delete[] imgData;
                 imgData = nullptr;
 
-                if (pixelCount >= 8)
+                if (imgDstFormat == "Z80")
                 {
-                    auto byteCount = (unsigned int)(pixelCount / 8);
-
-                    fwrite(&byteCount, sizeof(unsigned int), 1, fileHandle);
-
-                    for (auto byteIndex = 0U; byteIndex < byteCount; ++byteIndex)
+                    if (pixelCount >= 8)
                     {
-                        unsigned char byte = 0;
-                        for (auto bitIndex = 0U; bitIndex < 8; ++bitIndex)
+                        auto byteCount = (unsigned int)(pixelCount / 8);
+
+                        fprintf(fileHandle, "%d\n", byteCount);
+
+                        for (auto pixelIndex = 0U; pixelIndex < pixelCount; ++pixelIndex)
                         {
-                            auto pixelIndex = 8U * byteIndex + bitIndex;
+                            auto colIndex = (pixelIndex % imgWidth);
+                            auto lastColIndex = (imgWidth - 1);
+
+                            if ((colIndex % 8) == 0)
+                            {
+                                fprintf(fileHandle, ".DB ");
+                            }
+
+                            auto binary = binData[1 * pixelIndex + 0];
+
+                            fprintf(fileHandle, "%d", binary);
+
+                            if ((pixelIndex % 8) == 7)
+                            {
+                                fprintf(fileHandle, "b");
+
+                                if (colIndex < lastColIndex)
+                                {
+                                    fprintf(fileHandle, ", ");
+                                }
+                            }
+                            
+                            if (colIndex == lastColIndex)
+                            {
+                                fprintf(fileHandle, "\n");
+                            }
+                        }
+
+                        fprintf(fileHandle, "\n.end\n");
+                    }
+                    else
+                    {
+                        auto byteCount = 1;
+
+                        fprintf(fileHandle, "%d\n", byteCount);
+
+                        unsigned char byte = 0;
+                        for (auto pixelIndex = 0U; pixelIndex < pixelCount; ++pixelIndex)
+                        {
                             auto binary = binData[1 * pixelIndex + 0];
                             if (binary)
                             {
-                                byte |= (1U << bitIndex);
+                                byte |= (1U << pixelIndex);
                             }
                         }
-                        fwrite(&byte, sizeof(unsigned char), 1, fileHandle);
+                        fprintf(fileHandle, ".DB %d\n", byte);
+
+                        fprintf(fileHandle, "\n.end\n");
                     }
                 }
                 else
                 {
-                    auto byteCount = 1;
-
-                    fwrite(&byteCount, sizeof(unsigned int), 1, fileHandle);
-
-                    unsigned char byte = 0;
-                    for (auto pixelIndex = 0U; pixelIndex < pixelCount; ++pixelIndex)
+                    if (pixelCount >= 8)
                     {
-                        auto binary = binData[1 * pixelIndex + 0];
-                        if (binary)
+                        auto byteCount = (unsigned int)(pixelCount / 8);
+
+                        fwrite(&byteCount, sizeof(unsigned int), 1, fileHandle);
+
+                        for (auto byteIndex = 0U; byteIndex < byteCount; ++byteIndex)
                         {
-                            byte |= (1U << pixelIndex);
+                            unsigned char byte = 0;
+                            for (auto bitIndex = 0U; bitIndex < 8; ++bitIndex)
+                            {
+                                auto pixelIndex = 8U * byteIndex + bitIndex;
+                                auto binary = binData[1 * pixelIndex + 0];
+                                if (binary)
+                                {
+                                    byte |= (1U << bitIndex);
+                                }
+                            }
+                            fwrite(&byte, sizeof(unsigned char), 1, fileHandle);
                         }
                     }
-                    fwrite(&byte, sizeof(unsigned char), 1, fileHandle);
+                    else
+                    {
+                        auto byteCount = 1;
+
+                        fwrite(&byteCount, sizeof(unsigned int), 1, fileHandle);
+
+                        unsigned char byte = 0;
+                        for (auto pixelIndex = 0U; pixelIndex < pixelCount; ++pixelIndex)
+                        {
+                            auto binary = binData[1 * pixelIndex + 0];
+                            if (binary)
+                            {
+                                byte |= (1U << pixelIndex);
+                            }
+                        }
+                        fwrite(&byte, sizeof(unsigned char), 1, fileHandle);
+                    }
                 }
 
                 fclose(fileHandle);
