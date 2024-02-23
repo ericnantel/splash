@@ -4,6 +4,9 @@
 #include <iostream>
 using std::cout;
 
+#include "jpeglib.h"
+#include "jerror.h"
+
 namespace Splash
 {
     namespace Jpeg2Bin

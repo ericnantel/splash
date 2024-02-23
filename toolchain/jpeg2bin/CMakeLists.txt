@@ -28,6 +28,53 @@ add_library(
 )
 
 include_directories(
+	../thirdparty/libjpeg-turbo
+)
+
+# Add definitions
+if(WITH_JPEG8 OR WITH_JPEG7)
+  set(WITH_ARITH_ENC 1)
+  set(WITH_ARITH_DEC 1)
+endif()
+if(WITH_ARITH_DEC)
+  set(D_ARITH_CODING_SUPPORTED 1)
+endif()
+if(WITH_ARITH_ENC)
+  set(C_ARITH_CODING_SUPPORTED 1)
+endif()
+if(NOT WITH_JPEG8)
+  set(MEM_SRCDST_FUNCTIONS "global:  jpeg_mem_dest;  jpeg_mem_src;")
+endif()
+set(SO_AGE 3)
+if(NOT WITH_JPEG8)
+  set(SO_AGE 4)
+endif()
+if(WITH_JPEG8)
+  set(JPEG_LIB_VERSION 80)
+elseif(WITH_JPEG7)
+  set(JPEG_LIB_VERSION 70)
+else()
+  set(JPEG_LIB_VERSION 62)
+endif()
+
+# Generate files
+configure_file(../thirdparty/libjpeg-turbo/jversion.h.in ../../thirdparty/libjpeg-turbo/jversion.h)
+configure_file(../thirdparty/libjpeg-turbo/jconfig.h.in ../../thirdparty/libjpeg-turbo/jconfig.h)
+configure_file(../thirdparty/libjpeg-turbo/jconfigint.h.in ../../thirdparty/libjpeg-turbo/jconfigint.h)
+if(UNIX)
+  configure_file(../thirdparty/libjpeg-turbo/libjpeg.map.in ../../thirdparty/libjpeg-turbo/libjpeg.map)
+endif()
+
+set(LIBJPEG_TURBO_HEADER_FILES
+	../thirdparty/libjpeg-turbo/jpeglib.h
+)
+
+find_library(LIBJPEG_TURBO_STATIC_EXTERNAL_LIBRARY
+	NAMES jpeg-static libjpeg
+	HINTS ../thirdparty/libjpeg-turbo/build/Release
+)
+
+include_directories(
 	public
 	private
 )
@@ -52,7 +99,8 @@ add_executable(
 )
 
 set(STATIC_BINARIES
-	license${LICENSE_LIBRARY_NAME_SUFFIX}
+	PUBLIC license${LICENSE_LIBRARY_NAME_SUFFIX}
+	PRIVATE ${LIBJPEG_TURBO_STATIC_EXTERNAL_LIBRARY}
 )
 
 target_link_libraries(${PROJECT_NAME}

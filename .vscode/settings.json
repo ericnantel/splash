@@ -10,8 +10,12 @@
         "**/toolchain/tasm": true,
         "**/toolchain/binaries": true,
         "**/toolchain/jpeg2bin/build": true,
+        "**/toolchain/jpeg2bin/.vs": true,
+        "**/toolchain/jpeg2bin/out": true,
         "**/toolchain/thirdparty/binaries": true,
         "**/toolchain/thirdparty/libjpeg-turbo/build": true,
+        "**/toolchain/thirdparty/libjpeg-turbo/.vs": true,
+        "**/toolchain/thirdparty/libjpeg-turbo/out": true,
     },
     "files.exclude": {
         "**/binaries": true,
@@ -24,7 +28,11 @@
         "**/toolchain/tasm": true,
         "**/toolchain/binaries": true,
         "**/toolchain/jpeg2bin/build": true,
+        "**/toolchain/jpeg2bin/.vs": true,
+        "**/toolchain/jpeg2bin/out": true,
         "**/toolchain/thirdparty/binaries": true,
         "**/toolchain/thirdparty/libjpeg-turbo/build": true,
+        "**/toolchain/thirdparty/libjpeg-turbo/.vs": true,
+        "**/toolchain/thirdparty/libjpeg-turbo/out": true,
     }
 }
