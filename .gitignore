@@ -11,5 +11,9 @@
 /toolchain/tasm/
 /toolchain/binaries/
 /toolchain/jpeg2bin/build/
+/toolchain/jpeg2bin/.vs/
+/toolchain/jpeg2bin/out/
 /toolchain/thirdparty/binaries/
 /toolchain/thirdparty/libjpeg-turbo/build/
+/toolchain/thirdparty/libjpeg-turbo/.vs/
+/toolchain/thirdparty/libjpeg-turbo/out/
