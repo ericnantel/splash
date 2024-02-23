@@ -118,7 +118,7 @@ namespace Splash
                             auto colIndex = (pixelIndex % imgWidth);
                             auto lastColIndex = (imgWidth - 1);
 
-                            if ((colIndex % 8) == 0)
+                            if (colIndex == 0)
                             {
                                 fprintf(fileHandle, ".DB ");
                             }
