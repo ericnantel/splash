@@ -121,7 +121,7 @@ namespace Splash
                     {
                         auto byteCount = (unsigned int)(pixelCount / 8);
 
-                        fprintf(fileHandle, "%d\n", byteCount);
+                        fprintf(fileHandle, ";%d bytes\n", byteCount);
 
                         for (auto pixelIndex = 0U; pixelIndex < pixelCount; ++pixelIndex)
                         {
@@ -130,7 +130,7 @@ namespace Splash
 
                             if (colIndex == 0)
                             {
-                                fprintf(fileHandle, ".DB ");
+                                fprintf(fileHandle, "\t.DB ");
                             }
 
                             auto binary = binData[1 * pixelIndex + 0];
@@ -159,7 +159,7 @@ namespace Splash
                     {
                         auto byteCount = 1;
 
-                        fprintf(fileHandle, "%d\n", byteCount);
+                        fprintf(fileHandle, ";%d bytes\n", byteCount);
 
                         unsigned char byte = 0;
                         for (auto pixelIndex = 0U; pixelIndex < pixelCount; ++pixelIndex)
@@ -170,7 +170,7 @@ namespace Splash
                                 byte |= (1U << pixelIndex);
                             }
                         }
-                        fprintf(fileHandle, ".DB %d\n", byte);
+                        fprintf(fileHandle, "\t.DB %d\n", byte);
 
                         fprintf(fileHandle, "\n.end\n");
                     }
