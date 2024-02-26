@@ -20,8 +20,8 @@ namespace Splash
                 const auto imgSrcPath = args.At(1);
                 const auto imgDstPath = args.At(2);
                 const auto imgDstFormat = args.At(3);
-                const auto imgTolerance = args.At(4);
-                const auto imgInverse = args.At(5);
+                const auto imgTolerance = atof(std::string(args.At(4)).c_str());
+                const auto imgInverse = (args.At(5) != "0") ? true : false;
 
                 const char* fileOpenMode;
                 FILE* fileHandle;
@@ -87,7 +87,7 @@ namespace Splash
                     {
                         auto singleChannel = imgData[1 * pixelIndex + 0];
                         auto greyscale = singleChannel;
-                        auto binary = greyscale < threshold ? 0 : 1;
+                        auto binary = (greyscale < threshold) ? 0 : 1;
                         binData[1 * pixelIndex + 0] = binary;
                     }
                 }
@@ -99,7 +99,7 @@ namespace Splash
                         auto greenChannel = imgData[3 * pixelIndex + 1];
                         auto blueChannel = imgData[3 * pixelIndex + 2];
                         auto greyscale = (unsigned char)(0.33333333 * (redChannel + greenChannel + blueChannel));
-                        auto binary = greyscale < threshold ? 0 : 1;
+                        auto binary = (greyscale < threshold) ? 0 : 1;
                         binData[1 * pixelIndex + 0] = binary;
                     }
                 }
