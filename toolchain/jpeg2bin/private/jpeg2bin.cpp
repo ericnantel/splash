@@ -19,7 +19,7 @@ namespace Splash
             {
                 const auto imgSrcPath = args.At(1);
                 const auto imgDstPath = args.At(2);
-                const auto imgDstFormat = args.At(3);
+                const auto imgFormat = args.At(3);
                 const auto imgTolerance = atof(std::string(args.At(4)).c_str());
                 const auto imgInverse = (args.At(5) != "0") ? true : false;
 
@@ -65,7 +65,7 @@ namespace Splash
                 fclose(fileHandle);
                 fileHandle = NULL;
 
-                fileOpenMode = (imgDstFormat == "Z80") ? "w+" : "w+b";
+                fileOpenMode = (imgFormat == "Z80") ? "w+" : "w+b";
                 fileHandle = fopen(std::string(imgDstPath).c_str(), fileOpenMode);
                 if (fileHandle == NULL)
                 {
@@ -115,7 +115,7 @@ namespace Splash
                 delete[] imgData;
                 imgData = nullptr;
 
-                if (imgDstFormat == "Z80")
+                if (imgFormat == "Z80")
                 {
                     if (pixelCount >= 8)
                     {
