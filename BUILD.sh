@@ -9,6 +9,7 @@
 #It can run on Windows 98
 #On Modern PC, either use an emulator such as Virtual Box or UTM
 #Or install DOSBox (recommended) on Windows 11, Mac or Linux
+#Or install FreeDOS (not tested yet) on Windows 11, Mac or Linux
 #First time you run DOSBox, it may ask for permissions
 
 #brew tap homebrew/cask-versions
@@ -16,6 +17,7 @@
 
 os=$(uname -o)
 starting_directory=$(cd $(dirname $0) && pwd)
+output="binaries"
 directory="ti83plus"
 filename="splash"
 include_file="ti83plus.inc"
@@ -38,7 +40,11 @@ mv ${source_file} toolchain/tasm
 mv ${data_file} toolchain/tasm
 cd toolchain/tasm
 #if not exist TASM.EXE goto missing_assembler
-wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
+if [[ "$os" == 'Msys' ]]; then
+	./TASM.EXE -80 -i -b ${source_file} ${binary_file}
+else
+	wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
+fi
 
 echo preparing..
 
@@ -59,15 +65,19 @@ echo export..
 cd ..
 cd devpac8x
 #if not exist DEVPAC8X.COM goto missing_exporter
-dosbox_path="/Applications/DOSBox.app/Contents/MacOS/DOSBox"
-${dosbox_path} -c "MOUNT C $(pwd)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
+if [[ "$os" == 'Msys' ]]; then
+	"C:\Program Files (x86)\DOSBox-0.74-3\DOSBox.exe" -c "MOUNT C $(pwd -W)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
+else
+	"/Applications/DOSBox.app/Contents/MacOS/DOSBox" -c "MOUNT C $(pwd)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
+fi
+
 #if not exist ${export_file} goto fail_export
 rm ${binary_file}
 rm ${listing_file}
 cp ${export_file} ../cache
 mv ${export_file} ..
 cd ..
-mv ${export_file} ../binaries
+mv ${export_file} ../${output}
 cd ..
 
 #TODO RUN OR TRANSFER
