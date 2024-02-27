@@ -69,10 +69,17 @@ set(LIBJPEG_TURBO_HEADER_FILES
 	../thirdparty/libjpeg-turbo/jpeglib.h
 )
 
+if(WIN32)
 find_library(LIBJPEG_TURBO_STATIC_EXTERNAL_LIBRARY
-	NAMES jpeg-static libjpeg
+	NAMES jpeg-static.lib
 	HINTS ../thirdparty/libjpeg-turbo/build/Release
 )
+else()
+find_library(LIBJPEG_TURBO_STATIC_EXTERNAL_LIBRARY
+	NAMES libjpeg.a
+	HINTS ../thirdparty/libjpeg-turbo/build
+)
+endif()
 
 include_directories(
 	public
