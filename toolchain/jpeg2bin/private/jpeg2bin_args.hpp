@@ -23,7 +23,8 @@ namespace Splash
 
             const_reference At(size_t argi) const;
         };
-    };
-};
+    }; //namespace Jpeg2Bin
+}; //namespace Splash
 
 #endif
+

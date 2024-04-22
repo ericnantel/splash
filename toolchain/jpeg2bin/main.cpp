@@ -1,6 +1,6 @@
 
-#include "license.hpp"
 #include "jpeg2bin.hpp"
+#include "license.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -15,3 +15,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+

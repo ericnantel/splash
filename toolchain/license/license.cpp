@@ -11,4 +11,5 @@ namespace Splash
         std::cout << "By continuing to use Splash's toolchain, you agree to its license terms" << std::endl;
         std::cout << "Learn more at https://github.com/ericnantel/splash/blob/master/LICENSE" << std::endl;
     }
-};
+}; //namespace Splash
+

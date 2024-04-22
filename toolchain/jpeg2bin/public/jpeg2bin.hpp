@@ -9,6 +9,7 @@ namespace Splash
     namespace Jpeg2Bin
     {
         void Start(const Args& args);
-    };
-};
+    }; //namespace Jpeg2Bin
+}; //namespace Splash
 #endif
+
