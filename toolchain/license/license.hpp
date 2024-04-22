@@ -5,6 +5,7 @@
 namespace Splash
 {
     void License();
-};
+}; //namespace Splash
 
 #endif
+

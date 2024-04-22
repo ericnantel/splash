@@ -25,5 +25,6 @@ namespace Splash
         {
             return at(argi);
         }
-    };
-};
+    }; //namespace Jpeg2Bin
+}; //namespace Splash
+

@@ -4,8 +4,8 @@
 #include <iostream>
 using std::cout;
 
-#include "jpeglib.h"
 #include "jerror.h"
+#include "jpeglib.h"
 
 namespace Splash
 {
@@ -36,9 +36,9 @@ namespace Splash
 
                 jpeg_decompress_struct decompressor;
                 jpeg_error_mgr errorManager;
-                
+
                 decompressor.err = jpeg_std_error(&errorManager);
-                
+
                 jpeg_create_decompress(&decompressor);
 
                 jpeg_stdio_src(&decompressor, fileHandle);
@@ -48,7 +48,7 @@ namespace Splash
                 auto imgWidth = decompressor.output_width;
                 auto imgHeight = decompressor.output_height;
                 auto imgChannels = decompressor.num_components;
-                auto* imgData = new unsigned char[imgWidth * imgHeight * imgChannels];                
+                auto* imgData = new unsigned char[imgWidth * imgHeight * imgChannels];
 
                 auto rowStride = imgWidth * imgChannels;
 
@@ -61,7 +61,7 @@ namespace Splash
 
                 jpeg_finish_decompress(&decompressor);
                 jpeg_destroy_decompress(&decompressor);
-                
+
                 fclose(fileHandle);
                 fileHandle = NULL;
 
@@ -146,7 +146,7 @@ namespace Splash
                                     fprintf(fileHandle, ", ");
                                 }
                             }
-                            
+
                             if (colIndex == lastColIndex)
                             {
                                 fprintf(fileHandle, "\n");
@@ -224,5 +224,6 @@ namespace Splash
                 binData = nullptr;
             }
         }
-    };
-};
+    }; //namespace Jpeg2Bin
+}; //namespace Splash
+
