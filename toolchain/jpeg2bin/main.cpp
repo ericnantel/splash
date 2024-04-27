@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-    //You must join the license to all toolchain executables
+    //You must join the license to all toolchain binaries
     Splash::License();
 
     //Collecting args
@@ -15,4 +15,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
