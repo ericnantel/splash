@@ -44,7 +44,7 @@ mv ${data_file} toolchain/tasm
 mv ${asset_folder} toolchain/tasm
 cd toolchain/tasm
 #if not exist TASM.EXE goto missing_assembler
-if [[ "$os" == 'Msys' ]]; then
+if [ "$os" = 'Msys' ]; then
 	./TASM.EXE -80 -i -b ${source_file} ${binary_file}
 else
 	wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
@@ -71,7 +71,7 @@ echo export..
 cd ..
 cd devpac8x
 #if not exist DEVPAC8X.COM goto missing_exporter
-if [[ "$os" == 'Msys' ]]; then
+if [ "$os" = 'Msys' ]; then
 	"C:\Program Files (x86)\DOSBox-0.74-3\DOSBox.exe" -c "MOUNT C $(pwd -W)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
 else
 	"/Applications/DOSBox.app/Contents/MacOS/DOSBox" -c "MOUNT C $(pwd)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
