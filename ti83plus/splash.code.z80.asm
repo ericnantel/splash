@@ -207,14 +207,14 @@ LMoveCameraUp:
     LD (HL), A
     JR LCheckCameraViewportX
 LDecViewportX:
-    LD HL, GCameraViewportSize
+    LD HL, GCameraViewportSizeX
     LD A, (HL)
     ;CP 1
     ;JR Z, LCheckCameraViewportY
     DEC (HL)
     JR LCheckCameraViewportY
 LDecViewportY:
-    LD HL, GCameraViewportSize+1
+    LD HL, GCameraViewportSizeY
     LD A, (HL)
     ;CP 1
     ;JR Z, LCheckCameraDone
@@ -224,16 +224,16 @@ LCheckCameraDone:
 
     ;DEBUG
     ; LD IX, GCameraWorldCoords
-    ; LD IX, GCameraViewportSize
+    ; LD IX, GCameraViewportSizeY
     ; LD DE, 256*0+5
     ; LD (curRow), DE
     ; LD H, 0
-    ; LD L, (IX+0)
+    ; LD L, (IX+1)
     ; bcall(_DispHL)
     ; LD DE, 256*0+6
     ; LD (curRow), DE
     ; LD H, 0
-    ; LD L, (IX+1)
+    ; LD L, (IX+0)
     ; bcall(_DispHL)
 
     CALL Render
@@ -375,6 +375,10 @@ UpdatePlayerWorldCoords:
 ;   OUTPUT  NONE                        ;
 ;========================================
 UpdateCameraWorldCoords:
+	; NOTE: not good..
+	; possibly but need to verify
+	; LD HL, (GPlayerWorldCoordY)
+	; LD (GCameraWorldCoordY), HL
     LD HL, GPlayerWorldCoords
     LD DE, GCameraWorldCoords
     LD BC, 2
@@ -387,7 +391,8 @@ UpdateCameraWorldCoords:
 ;   OUTPUT  NONE                        ;
 ;========================================
 UpdateCameraViewportSize:
-    LD (GCameraViewportSize), BC
+	; NOTE: HL is a bit faster
+    LD (GCameraViewportSizeY), BC
     RET
 
 ;========================================
@@ -405,10 +410,7 @@ ClearGraphBuffer:
 ;   OUTPUT  NONE                        ;
 ;========================================
 DrawGraphBuffer:
-    LD HL, GCameraViewportSize
-    LD B, (HL)
-    INC HL
-    LD C, (HL)
+	LD BC, (GCameraViewportSizeY)
 
     LD A, B
     SUB 8
@@ -707,7 +709,7 @@ LShiftCacheLine_Optimized_End:
 ;========================================
 CalculateCacheLineDrawCalls:
     LD HL, GCameraWorldCoords+1
-    LD DE, GCameraViewportSize+1
+	LD DE, GCameraViewportSizeY
     LD A, (HL)
     EX DE, HL
     ADD A, (HL)
@@ -733,26 +735,22 @@ LCalculateCLDrawCalls_End:
 ;   OUTPUT  DE (COPY SIZE)              ;
 ;========================================
 CalculateCacheLineCopySize:
-    LD HL, GCameraViewportSize
-    LD A, (HL)
+	LD A, (GCameraViewportSizeX)
     SRA A
     SRA A
     SRA A
+	LD B, A ;max copy size
     ADD A, C
     SUB CACHE_LINE_LENGTH
     JR C, LCalculateMaxCopySize
     LD A, CACHE_LINE_LENGTH
     SUB C
-    LD D, 0
-    LD E, A
     JR LCalculateCLCopySize_End
 LCalculateMaxCopySize:
-    LD D, 0
-    LD E, (HL)
-    SRA E
-    SRA E
-    SRA E
+	LD A, B ; ok
 LCalculateCLCopySize_End:
+	LD D, 0
+	LD E, A
     RET
 
 ;========================================
@@ -1050,12 +1048,13 @@ GCameraWorldCoords:
 
 ;========================================
 ;       CAMERA VIEWPORT SIZE            ;
-;   BYTE0   X_SIZE                      ;
-;   BYTE1   Y_SIZE                      ;
+;   BYTE0   Y_SIZE                      ;
+;   BYTE1   X_SIZE                      ;
 ;========================================
-GCameraViewportSize:
-    .DB SCREEN_WIDTH
-    .DB SCREEN_HEIGHT
+GCameraViewportSizeY:
+	.DB SCREEN_HEIGHT
+GCameraViewportSizeX:
+	.DB SCREEN_WIDTH
 
 ;========================================
 ;       CACHE LINE                      ;
