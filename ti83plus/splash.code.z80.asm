@@ -69,6 +69,8 @@ LMainMenu:
     CALL PresentImageBuffer
 
 LMainMenu_Loop:
+    LD A, 11111111b
+    OUT (_KeyPort), A
     LD A, KEYGROUP_BF
     OUT (_KeyPort), A
     NOP
@@ -116,6 +118,8 @@ LMainIntro:
     bcall(_PutS)
 
 LMainIntro_Release2ndKeyLoop:
+    LD A, 11111111b
+    OUT (_KeyPort), A
     LD A, KEYGROUP_BF
     OUT (_KeyPort), A
     NOP
@@ -130,6 +134,8 @@ LLoadMainLevel:
     CALL LoadLevel
 
 LMainIntro_Loop:
+    LD A, 11111111b
+    OUT (_KeyPort), A
     LD A, KEYGROUP_BF
     OUT (_KeyPort), A
     NOP
