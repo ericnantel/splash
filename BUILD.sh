@@ -22,8 +22,8 @@ directory="ti83plus"
 filename="splash"
 include_file="ti83plus.inc"
 source_file=${filename}.code.z80.asm
-data_file=${filename}.data.z80.asm
 asset_folder=${filename}.assets
+routine_folder=${filename}.routines
 binary_file=${filename}.bin
 listing_file=${filename}.lst
 export_file=${filename}.8xp
@@ -34,14 +34,15 @@ echo assemble..
 cd ${directory}
 cp ${include_file} ..
 cp ${source_file} ..
-cp ${data_file} ..
 mkdir -p ${asset_folder}
 cp -r ${asset_folder} ..
+mkdir -p ${routine_folder}
+cp -r ${routine_folder} ..
 cd ..
 mv ${include_file} toolchain/tasm
 mv ${source_file} toolchain/tasm
-mv ${data_file} toolchain/tasm
 mv ${asset_folder} toolchain/tasm
+mv ${routine_folder} toolchain/tasm
 cd toolchain/tasm
 #if not exist TASM.EXE goto missing_assembler
 if [ "$os" = 'Msys' ]; then
@@ -55,9 +56,10 @@ echo preparing..
 #PREPARE
 mv ${include_file} ../cache
 mv ${source_file} ../cache
-mv ${data_file} ../cache
 rm -rf ../cache/${asset_folder}
 mv ${asset_folder} ../cache
+rm -rf ../cache/${routine_folder}
+mv ${routine_folder} ../cache
 #if not exist ${binary_file} goto fail_assemble
 cp ${binary_file} ../cache
 mv ${binary_file} ../devpac8x
