@@ -12,6 +12,7 @@
 ;========================================
 .NOLIST
 #include "ti83plus.inc"
+_Start				EQU userMem - 2
 _JForceCmd          EQU 402Ah
 _HomeUp             EQU 4558h
 _GraphBuffer        EQU plotSScreen
@@ -50,7 +51,7 @@ CACHE_BUFFER_LENGTH EQU 2048
 ;========================================
 ;       START ADDRESS                   ;
 ;========================================
-.ORG userMem - 2
+.ORG _Start
 
 ;========================================
 ;       ASM COMPILE TOKENS              ;
@@ -258,6 +259,8 @@ LCredits:
     bcall(_NewLine)
 
     RET
+
+#include "splash.routines/index.z80.asm"
 
 ;========================================
 ;       ROUTINES                        ;
@@ -1071,8 +1074,7 @@ GCacheBuffer:
 ;    .DB CACHE_BUFFER_LENGTH DUP(0)
     .FILL CACHE_BUFFER_LENGTH, (0)
 
-
-#include "splash.data.z80.asm"
+#include "splash.assets/index.z80.asm"
 
 .end
 .END
