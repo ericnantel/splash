@@ -183,25 +183,25 @@ LCheckCameraViewportY:
     JR LCheckCameraDone
 
 LMoveCameraDown:
-    LD HL, GCameraWorldCoords+1
+    LD HL, GCameraWorldCoordY
     LD A, (HL)
     INC A
     LD (HL), A
     JR LCheckCameraLeft
 LMoveCameraLeft:
-    LD HL, GCameraWorldCoords
+    LD HL, GCameraWorldCoordX
     LD A, (HL)
     DEC A
     LD (HL), A
     JR LCheckCameraRight
 LMoveCameraRight:
-    LD HL, GCameraWorldCoords
+    LD HL, GCameraWorldCoordX
     LD A, (HL)
     INC A
     LD (HL), A
     JR LCheckCameraUp
 LMoveCameraUp:
-    LD HL, GCameraWorldCoords+1
+    LD HL, GCameraWorldCoordY
     LD A, (HL)
     DEC A
     LD (HL), A
@@ -222,20 +222,26 @@ LDecViewportY:
 
 LCheckCameraDone:
 
-    ;DEBUG
-    ; LD IX, GCameraWorldCoords
-    ; LD IX, GCameraViewportSizeY
-    ; LD DE, 256*0+5
-    ; LD (curRow), DE
-    ; LD H, 0
-    ; LD L, (IX+1)
-    ; bcall(_DispHL)
-    ; LD DE, 256*0+6
-    ; LD (curRow), DE
-    ; LD H, 0
-    ; LD L, (IX+0)
-    ; bcall(_DispHL)
-
+    ;;DEBUG
+	;LD BC, (GCameraWorldCoordY)
+	;;LD BC, (GCameraViewportSizeY)
+	;LD H, 0
+	;LD L, B
+	;LD DE, 256*0+5
+	;LD (curRow), DE
+	;bcall(_DispHL)
+	;LD H, 0
+	;LD L, C
+	;LD DE, 256*0+6
+	;LD (curRow), DE
+	;bcall(_DispHL)
+	;LD HL, GBitDistance
+	;LD L, (HL)
+	;LD H, 0
+	;LD DE, 256*0+7
+	;LD (curRow), DE
+	;bcall(_DispHL)
+	
     CALL Render
 
     JP LMainLoop
@@ -362,27 +368,27 @@ LWriteInputs:
     RET
 
 ;========================================
-;       UPDATE PLAYER WORLD COORDS      ;
+;       UPDATE PLAYER WORLD COORD       ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
 ;========================================
-UpdatePlayerWorldCoords:
+UpdatePlayerWorldCoord:
     RET
 
 ;========================================
-;       UPDATE CAMERA WORLD COORDS      ;
+;       UPDATE CAMERA WORLD COORD       ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
 ;========================================
-UpdateCameraWorldCoords:
+UpdateCameraWorldCoord:
 	; NOTE: not good..
 	; possibly but need to verify
 	; LD HL, (GPlayerWorldCoordY)
 	; LD (GCameraWorldCoordY), HL
-    LD HL, GPlayerWorldCoords
-    LD DE, GCameraWorldCoords
-    LD BC, 2
-    LDIR
+    ; LD HL, GPlayerWorldCoords
+    ; LD DE, GCameraWorldCoords
+    ; LD BC, 2
+    ; LDIR
     RET
 
 ;========================================
@@ -410,118 +416,219 @@ ClearGraphBuffer:
 ;   OUTPUT  NONE                        ;
 ;========================================
 DrawGraphBuffer:
+	; NOTE: Read Camera Viewport Size 16bits into reg. pair BC
 	LD BC, (GCameraViewportSizeY)
 
-    LD A, B
-    SUB 8
-    RET C
+	; NOTE: Skip if Camera Viewport Width is less than 8
+	LD A, B
+	SUB 8
+	RET C
 
-    LD A, C
-    SUB 1
-    RET C
+	; NOTE: Skip if Camera Viewport Height is less than 1
+	LD A, C
+	SUB 1
+	RET C
 
-    LD A, SCREEN_WIDTH
-    SUB B
-    RET C
+	; NOTE: Skip if Camera Viewport Width is bigger than Screen Width
+	LD A, SCREEN_WIDTH
+	SUB B
+	RET C
 
-    LD A, SCREEN_HEIGHT
-    SUB C
-    RET C
+	; NOTE: Skip if Camera Viewport Height is bigger than Screen Height
+	LD A, SCREEN_HEIGHT
+	SUB C
+	RET C
 
-    LD HL, GCameraWorldCoords
-    LD B, (HL)
-    INC HL
-    LD C, (HL)
+	; NOTE: Read Camera World Coord 16bits into reg. pair BC
+	LD BC, (GCameraWorldCoordY)
 
-    LD A, CACHE_WIDTH-1
-    SUB B
-    RET C
+	; NOTE: Skip if Camera World Coord X is bigger than Cache Width
+	LD A, CACHE_WIDTH-1
+	SUB B
+	RET C
 
-    LD A, CACHE_HEIGHT-1
-    SUB C
-    RET C
+	; NOTE: Skip if Camera World Coord Y is bigger than Cache Height
+	LD A, CACHE_HEIGHT-1
+	SUB C
+	RET C
 
-LDrawCacheLayer:
-    CALL CalculateCacheLineDrawCalls
-    LD B, E
-    LD C, 0
+	; NOTE: Calculate bit distance from Camera World Coord X
+	LD D, 8
+	LD E, B
+	LD A, E
+LBitDistance_Loop_R:
+	AND 11111000b
+	JR Z, LBitDistance_End_R
+	LD A, E
+	SUB D
+	LD E, A
+	JR LBitDistance_Loop_R
+LBitDistance_End_R:
+	LD D, 0
+	;Register E has bit distance
 
-LDrawScreenRow_Loop:
-    PUSH BC
+	LD A, E
+	LD (GBitDistance), A
 
-    LD HL, GCameraWorldCoords
-    LD B, (HL)
-    INC HL
+	; NOTE: Calculate fast bit shift jump address and store in IX
+	; Beware this works because ADD HL, HL is 1 byte instruction
+	LD A, 7
+	SUB E ; bit distance
+	LD D, 0
+	LD E, A
+	LD IX, LFastBitShift
+	ADD IX, DE
 
-    LD A, (HL)
-    ADD A, C
-    LD C, A
-    
-    CALL ConvertWorldToCacheCoords
-    PUSH DE
+	; NOTE: Calculating cache line draw calls
+	LD HL, GCameraWorldCoordY
+	LD DE, GCameraViewportSizeY
+	LD A, (HL)
+	EX DE, HL
+	ADD A, (HL)
+	SUB CACHE_HEIGHT-1
+	JR C, LCDC
+	EX DE, HL
+	LD E, (HL)
+	LD A, CACHE_HEIGHT-1
+	SUB E
+	LD D, 0
+	LD E, A
+	JR LCDE
+LCDC:
+	LD D, 0
+	LD E, (HL)
+LCDE:
 
-    LD B, 0
-    LD C, E
-    CALL LoadCacheLine
+	LD B, E
+	LD C, 0
 
-    LD HL, GCameraWorldCoords
-    LD B, (HL)
-    LD C, 0
-    CALL ConvertWorldToBitDistance
+LDrawScreenRow_Loop_R:
 
-    EX DE, HL
-    POP DE
-    PUSH DE
+	PUSH BC
 
-    LD B, 0
-    LD C, L
-    LD E, D
-    LD D, 0
-    CALL ShiftCacheLine
-    ;CALL ShiftCacheLine_Optimized
+	; NOTE: Read Camera World Coord Y into register A
+	; NOTE: Convert Camera World Coord Y to Cache Coord Y in A
+	LD A, (GCameraWorldCoordY)
+	ADD A, C
 
-    POP IX
-    POP BC
-    PUSH BC
-    PUSH IX
+	; NOTE: Load Cache Line from Cache Coord Y
+	LD B, 0
+	LD C, A
+	; register C has cache coord y
+	LD H, B
+	LD L, C
+	;x12
+	ADD HL, BC
+	ADD HL, BC
+	ADD HL, HL
+	ADD HL, HL
+	;x16
+	;ADD HL, HL
+	;ADD HL, HL
+	;ADD HL, HL
+	;ADD HL, HL
 
-LCalculateGraphOffset:
-    LD A, C
-    LD HL, 0
-    CP 0
-    JR Z, LCalculateGraphOffset_End
-    LD B, 0
-    ;x12 (SCREEN_LINE_LENGTH)
-    LD H, B
-    LD L, C
-    ADD HL, BC
-    ADD HL, BC
-    ADD HL, HL
-    ADD HL, HL
-LCalculateGraphOffset_End:
+	LD DE, GCacheBuffer
+	ADD HL, DE
+	LD DE, GCacheLine
+	LD BC, CACHE_LINE_LENGTH
+	LDIR
 
-    POP DE
-    PUSH DE
-    PUSH HL
+	; NOTE: Read Camera World Coord X into register A
+	; NOTE: Convert Camera World Coord X to Cache Coord X in A
+	LD A, (GCameraWorldCoordX)
+	SRA A
+	SRA A
+	SRA A
 
-    LD B, 0
-    LD C, D
-    PUSH BC
-    CALL CalculateCacheLineCopySize
+	; NOTE: Shift Cache Line
+	; TODO: Put Bit distance in C or discard if no need to shift
+	; LD HL, GBitDistance
+	; LD B, 0
+	; LD C, (HL)
+	LD D, 0
+	LD E, A
+	; register E has cache coord x
+	CALL ShiftCacheLine
 
-    LD B, D
-    LD C, E
-    POP HL
-    POP DE
-    CALL CopyCacheLine
+	POP BC
+	PUSH BC
 
-    POP IX
-    POP BC
-    INC C
-    DJNZ LDrawScreenRow_Loop
-LDrawCacheLayer_End:
+	; NOTE: Read Camera World Coord Y into register A
+	; NOTE: Convert Camera World Coord Y to Cache Coord Y in A
+	LD A, (GCameraWorldCoordY)
+	ADD A, C
+	LD A, C
 
-    RET
+	; NOTE: Calculate Graph Start Address and store in DE
+	LD B, 0
+	LD C, A
+	; register C has cache coord y
+	LD H, B
+	LD L, C
+	;x12
+	ADD HL, BC
+	ADD HL, BC
+	ADD HL, HL
+	ADD HL, HL
+	;x16
+	;ADD HL, HL
+	;ADD HL, HL
+	;ADD HL, HL
+	;ADD HL, HL
+
+	LD DE, _GraphBuffer
+	ADD HL, DE
+	EX DE, HL
+
+	; NOTE: Read Camera World Coord X into register A
+	; NOTE: Convert Camera World Coord X to Cache Coord X in A
+	LD A, (GCameraWorldCoordX)
+	SRA A
+	SRA A
+	SRA A
+
+	; NOTE: Calculate Cache Line Start Address and store in HL
+	LD B, 0
+	LD C, A
+	; register C has cache coord x
+	LD HL, GCacheLine
+	ADD HL, BC
+	
+	; NOTE: Calculate Cache Line Copy Size
+	; This is not good but we need to not use HL or DE !!
+	; But why are we calculating this here everytime
+	; When this should not change once we know the coord x
+	; and we should use this value as well during copycacheline..
+	LD B, A
+	; register B has cache coord x
+	LD A, (GCameraViewportSizeX)
+	SRA A
+	SRA A
+	SRA A
+	LD C, A
+	; register C has max copy size
+	LD A, CACHE_LINE_LENGTH
+	SUB B
+	SUB C
+	JR C, LCopySizeClamp
+	LD A, C ; We can show all viewport size x
+	JR LCopySizeDone
+LCopySizeClamp:
+	; We cannot show all viewport size x
+	LD A, CACHE_LINE_LENGTH
+	SUB B
+LCopySizeDone:
+	LD B, 0
+	LD C, A
+
+	LDIR
+
+	POP BC
+	INC C
+	DJNZ LDrawScreenRow_Loop_R
+
+	RET
 
 ;========================================
 ;       PRESENT GRAPH BUFFER            ;
@@ -604,103 +711,79 @@ LoadCacheLine:
 ;       SHIFT CACHE LINE                ;
 ;   INPUT   BC (0 | BIT DISTANCE)       ;
 ;           DE (0 | CACHE X_COORD)      ;
+;			IX (JP ADDRESS)				;
 ;   OUTPUT  NONE                        ;
 ;========================================
 ShiftCacheLine:
-    LD A, C
-    CP 0
-    JR Z, LShiftCacheLine_End
-    
-    LD HL, GCacheLine
-    ADD HL, DE
-    LD A, CACHE_LINE_LENGTH
-    SUB E
-    LD B, A
-LShiftCacheLine_Loop1:
-    LD D, (HL)
-    INC HL
-    LD E, (HL)
-    
-    EX DE, HL
-    LD A, B;PUSH BC
+	; NOTE: Skip if bit distance is 0
+	; LD A, C
+	; CP 0
+	; RET Z
 
-    LD B, C
-LShiftCacheLine_Loop2:
-    ADD HL, HL
-    DJNZ LShiftCacheLine_Loop2
+	; NOTE: Debug
+	; LD A, 255
+	; LD (GCacheLineExtraByte), A
 
-    LD B, A;POP BC
-    EX DE, HL
-    
-    DEC HL
-    LD (HL), D
-    INC HL
-    
-    DJNZ LShiftCacheLine_Loop1
-LShiftCacheLine_End:
-    RET
+	; THIS WORKS BUT WE SHIFT ALL CACHELINE
+	; ; NOTE: Load B with Byte Count
+	; LD A, CACHE_LINE_LENGTH
+	; LD B, A
+	;
+	; ; NOTE: Store CacheLine Address in DE
+	; LD DE, GCacheLine
+	
+	; NOTE: Load B with Byte Count
+	LD A, CACHE_LINE_LENGTH
+	SUB E
+	LD B, A
 
-;========================================
-;       SHIFT CACHE LINE OPTIMIZED      ;
-;   INPUT   BC (0 | BIT DISTANCE)       ;
-;           DE (0 | CACHE X_COORD)      ;
-;   OUTPUT  NONE                        ;
-;========================================
-ShiftCacheLine_Optimized:
-    LD A, C
-    CP 0
-    JR Z, LShiftCacheLine_Optimized_End
-    
-    EX DE, HL
+	; NOTE: Store CacheLine Start Address in DE
+	LD HL, GCacheLine
+	ADD HL, DE
+	EX DE, HL
 
-    LD A, 7
-    SUB C
-    LD D, 0
-    LD E, A
-    LD IX, LFastBitShift
-    ADD IX, DE
+	; NOTE: Loop with Counter in register B
+LShiftCacheLine_ShiftLoop:
 
-    EX DE, HL
-
-    LD HL, GCacheLine
-    ADD HL, DE
-    LD A, CACHE_LINE_LENGTH
-    SUB E
-    LD B, A
-
-LShiftCacheLine_Optimized_Loop1:
-    LD D, (HL)
-    INC HL
-    LD E, (HL)
-    
-    EX DE, HL
-
-    JP (IX)
+	; NOTE: Read 2 bytes from addresses DE and DE+1
+	; And store them in HL register pair
+	LD A, (DE)		;7ticks
+	LD H, A			;4ticks
+	INC DE			;6ticks
+	LD A, (DE)		;7ticks
+	LD L, A			;4ticks
+	DEC DE			;6ticks = 34ticks 
+	
+	; NOTE: Jump to address in IX
+    JP (IX)			;8ticks
 LFastBitShift:
-LFastBitShift_7:
-    ADD HL, HL
-LFastBitShift_6:
-    ADD HL, HL
-LFastBitShift_5:
-    ADD HL, HL
-LFastBitShift_4:
-    ADD HL, HL
-LFastBitShift_3:
-    ADD HL, HL
-LFastBitShift_2:
-    ADD HL, HL
-LFastBitShift_1:
-    ADD HL, HL
+LFastBitShift7:
+    ADD HL, HL		;11ticks
+LFastBitShift6:
+    ADD HL, HL		;11ticks
+LFastBitShift5:
+    ADD HL, HL		;11ticks
+LFastBitShift4:
+    ADD HL, HL		;11ticks
+LFastBitShift3:
+    ADD HL, HL		;11ticks
+LFastBitShift2:
+    ADD HL, HL		;11ticks
+LFastBitShift1:
+    ADD HL, HL		;11ticks
+LFastBitShift0:
 
-    EX DE, HL
-    
-    DEC HL
-    LD (HL), D
-    INC HL
-    
-    DJNZ LShiftCacheLine_Optimized_Loop1
-LShiftCacheLine_Optimized_End:
-    RET
+	; NOTE: Write register H content to address in DE
+	LD A, H			;4ticks
+	LD (DE), A		;7ticks
+
+	; NOTE: Increment address in DE
+	INC DE			;6ticks
+
+	; NOTE: Repeat instructions above if B Counter is Non-Zero
+	DJNZ LShiftCacheLine_ShiftLoop
+	
+	RET
 
 ;========================================
 ;       CALCULATE CACHE LINE DRAW CALLS ;
@@ -708,7 +791,7 @@ LShiftCacheLine_Optimized_End:
 ;   OUTPUT  DE (0 | DRAW CALLS)         ;
 ;========================================
 CalculateCacheLineDrawCalls:
-    LD HL, GCameraWorldCoords+1
+    LD HL, GCameraWorldCoordY
 	LD DE, GCameraViewportSizeY
     LD A, (HL)
     EX DE, HL
@@ -761,6 +844,7 @@ LCalculateCLCopySize_End:
 ;   OUTPUT  NONE                        ;
 ;========================================
 CopyCacheLine:
+	; NOTE: I don't like this..
     PUSH BC
     LD BC, GCacheLine
     ADD HL, BC
@@ -778,14 +862,14 @@ CopyCacheLine:
 ;   OUTPUT  DE (SCREEN COORDS)          ;
 ;========================================
 ConvertWorldToScreenCoords:
-    LD HL, GCameraWorldCoords
-    LD A, B
-    SUB (HL)
-    LD D, A
-    INC HL
-    LD A, C
-    SUB (HL)
-    LD E, A
+    ; LD HL, GCameraWorldCoords
+    ; LD A, B
+    ; SUB (HL)
+    ; LD D, A
+    ; INC HL
+    ; LD A, C
+    ; SUB (HL)
+    ; LD E, A
     RET
 
 ;========================================
@@ -865,14 +949,14 @@ LBitDistance_End:
 ;   OUTPUT  DE (WORLD COORDS)           ;
 ;========================================
 ConvertScreenToWorldCoords:
-    LD HL, GCameraWorldCoords
-    LD A, B
-    ADD A, (HL)
-    LD D, A
-    INC HL
-    LD A, C
-    ADD A, (HL)
-    LD E, A
+    ; LD HL, GCameraWorldCoords
+    ; LD A, B
+    ; ADD A, (HL)
+    ; LD D, A
+    ; INC HL
+    ; LD A, C
+    ; ADD A, (HL)
+    ; LD E, A
     RET
 
 ;========================================
@@ -1029,22 +1113,24 @@ GInputs:
     .DB 00000000b
 
 ;========================================
-;       PLAYER WORLD COORDS             ;
-;   BYTE0   X_COORD                     ;
-;   BYTE1   Y_COORD                     ;
+;       PLAYER WORLD COORD              ;
+;   BYTE0   Y_COORD                     ;
+;   BYTE1   X_COORD                     ;
 ;========================================
-GPlayerWorldCoords:
+GPlayerWorldCoordY:
     .DB 0
+GPlayerWorldCoordX:
     .DB 0
 
 ;========================================
-;       CAMERA WORLD COORDS             ;
-;   BYTE0   X_COORD                     ;
-;   BYTE1   Y_COORD                     ;
+;       CAMERA WORLD COORD              ;
+;   BYTE0   Y_COORD                     ;
+;   BYTE1   X_COORD                     ;
 ;========================================
-GCameraWorldCoords:
-    .DB 0
-    .DB 0
+GCameraWorldCoordY:
+	.DB 0
+GCameraWorldCoordX:
+	.DB 0
 
 ;========================================
 ;       CAMERA VIEWPORT SIZE            ;
@@ -1055,6 +1141,11 @@ GCameraViewportSizeY:
 	.DB SCREEN_HEIGHT
 GCameraViewportSizeX:
 	.DB SCREEN_WIDTH
+
+GRowCount:
+	.DB 0
+GBitDistance:
+	.DB 0
 
 ;========================================
 ;       CACHE LINE                      ;
