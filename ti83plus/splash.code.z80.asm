@@ -406,9 +406,9 @@ UpdateCameraViewportSize:
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
 ;========================================
-ClearGraphBuffer:
-    bcall(_GrBufClr)
-    RET
+; ClearGraphBuffer:
+;     bcall(_GrBufClr)
+;     RET
 
 ;========================================
 ;       DRAW GRAPH BUFFER               ;
@@ -452,23 +452,40 @@ DrawGraphBuffer:
 	SUB C
 	RET C
 
-	; NOTE: Calculate bit distance from Camera World Coord X
-	LD D, 8
-	LD E, B
-	LD A, E
-LBitDistance_Loop_R:
-	AND 11111000b
-	JR Z, LBitDistance_End_R
-	LD A, E
-	SUB D
-	LD E, A
-	JR LBitDistance_Loop_R
-LBitDistance_End_R:
-	LD D, 0
-	;Register E has bit distance
+	;; NOTE: Calculate bit distance from Camera World Coord X
+	;LD D, 8
+	;LD E, B
+	;LD A, E
+;LBitDistance_Loop_R:
+	;AND 11111000b
+	;JR Z, LBitDistance_End_R
+	;LD A, E
+	;SUB D
+	;LD E, A
+	;JR LBitDistance_Loop_R
+;LBitDistance_End_R:
+	;LD D, 0
+	;;Register E has bit distance
+	
+	;LD A, E
+	;LD (GBitDistance), A
 
-	LD A, E
+	;LD B, 15		;4ticks
+	LD C, 00011111b	;4ticks
+	LD A, B			;4ticks
+	RRA				;4ticks
+	RRA				;4ticks
+	RRA				;4ticks
+	AND C			;4ticks
+	ADD A, A		;4ticks
+	ADD A, A		;4ticks
+	ADD A, A		;4ticks
+	LD C, A			;4ticks
+	LD A, B			;4ticks
+	SUB C			;4ticks = 52ticks
 	LD (GBitDistance), A
+	
+	LD E, A
 
 	; NOTE: Calculate fast bit shift jump address and store in IX
 	; Beware this works because ADD HL, HL is 1 byte instruction
@@ -637,6 +654,7 @@ LCopySizeDone:
 ;========================================
 PresentGraphBuffer:
     bcall(_GrBufCpy)
+	; CALL gbufCopy
     RET
 
 ;========================================
@@ -1089,8 +1107,11 @@ UnpackMatrixCoords:
 ;   OUTPUT  NONE                        ;
 ;========================================
 Render:
+	XOR A
+	; LD A, 11011011b
     CALL ClearGraphBuffer
-    CALL DrawGraphBuffer
+    
+	CALL DrawGraphBuffer
     CALL PresentGraphBuffer
     RET
 
