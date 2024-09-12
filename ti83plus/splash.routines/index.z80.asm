@@ -11,24 +11,33 @@
 ;       NO LISTING                      ;
 ;========================================
 .NOLIST
+; #define USE_BIT_DISTANCE_LOOP
 .LIST
 
-; PERHAPS THIS IS FASTER..
-BITDISTANCE:
-	LD B, 15		;4ticks
-	LD C, 00011111b	;4ticks
-	LD A, B			;4ticks
-	RRA				;4ticks
-	RRA				;4ticks
-	RRA				;4ticks
-	AND C			;4ticks
-	ADD A, A		;4ticks
-	ADD A, A		;4ticks
-	ADD A, A		;4ticks
-	LD C, A			;4ticks
-	LD A, B			;4ticks
-	SUB C			;4ticks = 52ticks
-	RET
+#include "splash.routines/conversions.z80.asm"
+
+; CALCULATEDRAWCALLS:
+; 	LD A, (GCameraWorldCoordY)
+; 	LD B, A
+; 	; register B has cache coord y
+; 	LD A, (GCameraViewportSizeY)
+; 	LD C, A
+; 	; register C has max draw calls
+; 	LD A, CACHE_HEIGHT-1
+; 	SUB B
+; 	SUB C
+; 	JR C, LDrawCallClamp
+; 	LD A, C ; We can draw all viewport size y
+; 	JR LDrawCallDone
+; LDrawCallClamp:
+; 	; We cannot show all viewport size y
+; 	LD A, CACHE_HEIGHT-1
+; 	SUB B
+; LDrawCallDone:
+; 	LD B, 0
+; 	LD C, A
+	
+; 	RET
 
 ClearGraphBuffer:
 	LD HL, _GraphBuffer
