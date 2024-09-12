@@ -406,9 +406,9 @@ UpdateCameraViewportSize:
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
 ;========================================
-ClearGraphBuffer:
-    bcall(_GrBufClr)
-    RET
+; ClearGraphBuffer:
+;     bcall(_GrBufClr)
+;     RET
 
 ;========================================
 ;       DRAW GRAPH BUFFER               ;
@@ -453,22 +453,10 @@ DrawGraphBuffer:
 	RET C
 
 	; NOTE: Calculate bit distance from Camera World Coord X
-	LD D, 8
-	LD E, B
-	LD A, E
-LBitDistance_Loop_R:
-	AND 11111000b
-	JR Z, LBitDistance_End_R
-	LD A, E
-	SUB D
-	LD E, A
-	JR LBitDistance_Loop_R
-LBitDistance_End_R:
-	LD D, 0
-	;Register E has bit distance
-
-	LD A, E
+	CALL ConvertWorld2BitDistance
 	LD (GBitDistance), A
+	
+	LD E, A
 
 	; NOTE: Calculate fast bit shift jump address and store in IX
 	; Beware this works because ADD HL, HL is 1 byte instruction
@@ -479,25 +467,48 @@ LBitDistance_End_R:
 	LD IX, LFastBitShift
 	ADD IX, DE
 
-	; NOTE: Calculating cache line draw calls
-	LD HL, GCameraWorldCoordY
-	LD DE, GCameraViewportSizeY
-	LD A, (HL)
-	EX DE, HL
-	ADD A, (HL)
-	SUB CACHE_HEIGHT-1
-	JR C, LCDC
-	EX DE, HL
-	LD E, (HL)
+	; ; NOTE: Calculating cache line draw calls
+	; LD HL, GCameraWorldCoordY
+	; LD DE, GCameraViewportSizeY
+	; LD A, (HL)
+	; EX DE, HL
+	; ADD A, (HL)
+	; SUB CACHE_HEIGHT-1
+	; JR C, LCDC
+	; EX DE, HL
+	; LD E, (HL)
+	; LD A, CACHE_HEIGHT-1
+	; SUB E
+	; LD D, 0
+	; LD E, A
+	; JR LCDE
+; LCDC:
+	; LD D, 0
+	; LD E, (HL)
+; LCDE:
+	
+	LD A, (GCameraWorldCoordY)
+	CALL ConvertWorld2CacheCoordY
+	LD B, A
+	; register B has cache coord y
+	LD A, (GCameraViewportSizeY)
+	LD C, A
+	; register C has max draw calls
 	LD A, CACHE_HEIGHT-1
-	SUB E
+	SUB B
+	SUB C
+	JR C, LDrawCallClamp
+	LD A, C ; We can draw all viewport size y
+	JR LDrawCallDone
+LDrawCallClamp:
+	; We cannot show all viewport size y
+	LD A, CACHE_HEIGHT-1
+	SUB B
+LDrawCallDone:
+	; LD B, 0
+	; LD C, A
 	LD D, 0
 	LD E, A
-	JR LCDE
-LCDC:
-	LD D, 0
-	LD E, (HL)
-LCDE:
 
 	LD B, E
 	LD C, 0
@@ -509,6 +520,7 @@ LDrawScreenRow_Loop_R:
 	; NOTE: Read Camera World Coord Y into register A
 	; NOTE: Convert Camera World Coord Y to Cache Coord Y in A
 	LD A, (GCameraWorldCoordY)
+	CALL ConvertWorld2CacheCoordY
 	ADD A, C
 
 	; NOTE: Load Cache Line from Cache Coord Y
@@ -537,9 +549,7 @@ LDrawScreenRow_Loop_R:
 	; NOTE: Read Camera World Coord X into register A
 	; NOTE: Convert Camera World Coord X to Cache Coord X in A
 	LD A, (GCameraWorldCoordX)
-	SRA A
-	SRA A
-	SRA A
+	CALL ConvertWorld2CacheCoordX
 
 	; NOTE: Shift Cache Line
 	; TODO: Put Bit distance in C or discard if no need to shift
@@ -557,6 +567,7 @@ LDrawScreenRow_Loop_R:
 	; NOTE: Read Camera World Coord Y into register A
 	; NOTE: Convert Camera World Coord Y to Cache Coord Y in A
 	LD A, (GCameraWorldCoordY)
+	CALL ConvertWorld2CacheCoordY
 	ADD A, C
 	LD A, C
 
@@ -584,9 +595,7 @@ LDrawScreenRow_Loop_R:
 	; NOTE: Read Camera World Coord X into register A
 	; NOTE: Convert Camera World Coord X to Cache Coord X in A
 	LD A, (GCameraWorldCoordX)
-	SRA A
-	SRA A
-	SRA A
+	CALL ConvertWorld2CacheCoordX
 
 	; NOTE: Calculate Cache Line Start Address and store in HL
 	LD B, 0
@@ -637,6 +646,7 @@ LCopySizeDone:
 ;========================================
 PresentGraphBuffer:
     bcall(_GrBufCpy)
+	; CALL gbufCopy
     RET
 
 ;========================================
@@ -857,22 +867,6 @@ CopyCacheLine:
     RET
 
 ;========================================
-;       CONVERT WORLD TO SCREEN COORDS  ;
-;   INPUT   BC (WORLD COORDS)           ;
-;   OUTPUT  DE (SCREEN COORDS)          ;
-;========================================
-ConvertWorldToScreenCoords:
-    ; LD HL, GCameraWorldCoords
-    ; LD A, B
-    ; SUB (HL)
-    ; LD D, A
-    ; INC HL
-    ; LD A, C
-    ; SUB (HL)
-    ; LD E, A
-    RET
-
-;========================================
 ;       CONVERT WORLD TO GRID COORDS    ;
 ;   INPUT   BC (WORLD COORDS)           ;
 ;   OUTPUT  DE (GRID COORDS)            ;
@@ -891,111 +885,6 @@ ConvertWorldToGridCoords:
     RET
 
 ;========================================
-;       CONVERT WORLD TO CACHE COORDS   ;
-;   INPUT   BC (WORLD COORDS)           ;
-;   OUTPUT  DE (CACHE COORDS)           ;
-;========================================
-ConvertWorldToCacheCoords:
-    LD D, B
-    LD E, C
-    SRA D
-    SRA D
-    SRA D
-    RET
-
-;========================================
-;       CONVERT WORLD TO MATRIX COORDS  ;
-;   INPUT   BC (WORLD COORDS)           ;
-;   OUTPUT  DE (MATRIX COORDS)          ;
-;========================================
-ConvertWorldToMatrixCoords:
-    PUSH BC
-    CALL ConvertWorldToGridCoords
-    LD B, D
-    LD C, E
-    CALL ConvertGridToWorldCoords
-    POP BC
-    LD A, B
-    SUB D
-    LD D, A
-    LD A, C
-    SUB E
-    LD E, A
-    RET
-
-;========================================
-;       CONVERT WORLD TO BIT DISTANCE   ;
-;   INPUT   BC (X_COORD | 0)            ;
-;   OUTPUT  DE (0 | BIT DISTANCE)       ;
-;========================================
-ConvertWorldToBitDistance:
-    LD A, B
-    LD C, 8
-LBitDistance_Loop:
-    AND 11111000b
-    JR Z, LBitDistance_End
-    LD A, B
-    SUB C
-    LD B, A
-    JR LBitDistance_Loop
-LBitDistance_End:
-    LD D, 0
-    LD E, B
-    RET
-
-;========================================
-;       CONVERT SCREEN TO WORLD COORDS  ;
-;   INPUT   BC (SCREEN COORDS)          ;
-;   OUTPUT  DE (WORLD COORDS)           ;
-;========================================
-ConvertScreenToWorldCoords:
-    ; LD HL, GCameraWorldCoords
-    ; LD A, B
-    ; ADD A, (HL)
-    ; LD D, A
-    ; INC HL
-    ; LD A, C
-    ; ADD A, (HL)
-    ; LD E, A
-    RET
-
-;========================================
-;       CONVERT SCREEN TO GRID COORDS   ;
-;   INPUT   BC (SCREEN COORDS)          ;
-;   OUTPUT  DE (GRID COORDS)            ;
-;========================================
-ConvertScreenToGridCoords:
-    CALL ConvertScreenToWorldCoords
-    LD B, D
-    LD C, E
-    CALL ConvertWorldToGridCoords
-    RET
-
-;========================================
-;       CONVERT SCREEN TO CACHE COORDS  ;
-;   INPUT   BC (SCREEN COORDS)          ;
-;   OUTPUT  DE (CACHE COORDS)           ;
-;========================================
-ConvertScreenToCacheCoords:
-    CALL ConvertScreenToWorldCoords
-    LD B, D
-    LD C, E
-    CALL ConvertWorldToCacheCoords
-    RET
-
-;========================================
-;       CONVERT SCREEN TO MATRIX COORDS ;
-;   INPUT   BC (SCREEN COORDS)          ;
-;   OUTPUT  DE (MATRIX COORDS)          ;
-;========================================
-ConvertScreenToMatrixCoords:
-    CALL ConvertScreenToWorldCoords
-    LD B, D
-    LD C, E
-    CALL ConvertWorldToMatrixCoords
-    RET
-
-;========================================
 ;       CONVERT GRID TO WORLD COORDS    ;
 ;   INPUT   BC (GRID COORDS)            ;
 ;   OUTPUT  DE (WORLD COORDS)           ;
@@ -1011,43 +900,6 @@ ConvertGridToWorldCoords:
     SLA E
     SLA E
     SLA E
-    RET
-
-;========================================
-;       CONVERT GRID TO SCREEN  COORDS  ;
-;   INPUT   BC (GRID COORDS)            ;
-;   OUTPUT  DE (SCREEN COORDS)          ;
-;========================================
-ConvertGridToScreenCoords:
-    CALL ConvertGridToWorldCoords
-    LD B, D
-    LD C, E
-    CALL ConvertWorldToScreenCoords
-    RET
-
-;========================================
-;       CONVERT CACHE TO WORLD COORDS   ;
-;   INPUT   BC (CACHE COORDS)           ;
-;   OUTPUT  DE (WORLD COORDS)           ;
-;========================================
-ConvertCacheToWorldCoords:
-    LD D, B
-    LD E, C
-    SLA D
-    SLA D
-    SLA D
-    RET
-
-;========================================
-;       CONVERT CACHE TO SCREEN COORDS  ;
-;   INPUT   BC (CACHE COORDS)           ;
-;   OUTPUT  DE (SCREEN COORDS)          ;
-;========================================
-ConvertCacheToScreenCoords:
-    CALL ConvertCacheToWorldCoords
-    LD B, D
-    LD C, E
-    CALL ConvertWorldToScreenCoords
     RET
 
 ;========================================
@@ -1089,8 +941,11 @@ UnpackMatrixCoords:
 ;   OUTPUT  NONE                        ;
 ;========================================
 Render:
+	XOR A
+	; LD A, 11011011b
     CALL ClearGraphBuffer
-    CALL DrawGraphBuffer
+    
+	CALL DrawGraphBuffer
     CALL PresentGraphBuffer
     RET
 
