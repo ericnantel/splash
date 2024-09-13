@@ -40,7 +40,14 @@ UpdateCameraWorldOffsets:
 	LD (GCameraWorldOffsetY), BC
 	RET
 
-; TODO: Add WithinViewport Routine
-; Add the other routines related to camera
+;========================================
+;       UPDATE CAMERA VIEWPORT SIZES	;
+;   INPUT   BC (SIZE_X | SIZE_Y)    	;
+;   OUTPUT  NONE						;
+;========================================
+UpdateCameraViewportSizes:
+; TODO: Perhaps do the screen width / height clamp here
+	LD (GCameraViewportSizeY), BC
+	RET
 
 .end

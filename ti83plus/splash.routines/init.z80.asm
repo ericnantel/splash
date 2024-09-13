@@ -17,11 +17,16 @@
 ;========================================
 .LIST
 
+;========================================
+;       INIT GAMEPLAY RUNTIMES       	;
+;   INPUT   NONE            			;
+;   OUTPUT  NONE            			;
+;========================================
 InitGameplayRuntimes:
 	LD BC, 0
 	LD (GCameraWorldCoordY), BC
 
-	LD BC, 256*47+31
+	LD BC, 256*48+32
 	LD (GCameraWorldOffsetY), BC
 
 	LD BC, 256*SCREEN_WIDTH+SCREEN_HEIGHT
@@ -34,7 +39,7 @@ InitGameplayRuntimes:
 	LD BC, 0
 	CALL UpdateCameraWorldCoords
 
-	LD BC, 256*47+31
+	LD BC, 256*48+32
 	CALL UpdateCameraWorldOffsets
 
 	LD BC, 256*48+32
@@ -47,6 +52,9 @@ InitGameplayRuntimes:
 
 	LD BC, 256*48+32
 	CALL UpdatePlayerWorldCoords
+
+	XOR A
+	LD (GGameplayInputFlags), A
 
 	RET
 
