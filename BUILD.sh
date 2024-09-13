@@ -24,6 +24,7 @@ include_file="ti83plus.inc"
 source_file=${filename}.code.z80.asm
 asset_folder=${filename}.assets
 routine_folder=${filename}.routines
+runtime_folder=${filename}.runtimes
 binary_file=${filename}.bin
 listing_file=${filename}.lst
 export_file=${filename}.8xp
@@ -38,11 +39,14 @@ mkdir -p ${asset_folder}
 cp -r ${asset_folder} ..
 mkdir -p ${routine_folder}
 cp -r ${routine_folder} ..
+mkdir -p ${runtime_folder}
+cp -r ${runtime_folder} ..
 cd ..
 mv ${include_file} toolchain/tasm
 mv ${source_file} toolchain/tasm
 mv ${asset_folder} toolchain/tasm
 mv ${routine_folder} toolchain/tasm
+mv ${runtime_folder} toolchain/tasm
 cd toolchain/tasm
 #if not exist TASM.EXE goto missing_assembler
 if [ "$os" = 'Msys' ]; then
@@ -60,6 +64,8 @@ rm -rf ../cache/${asset_folder}
 mv ${asset_folder} ../cache
 rm -rf ../cache/${routine_folder}
 mv ${routine_folder} ../cache
+rm -rf ../cache/${runtime_folder}
+mv ${runtime_folder} ../cache
 #if not exist ${binary_file} goto fail_assemble
 cp ${binary_file} ../cache
 mv ${binary_file} ../devpac8x

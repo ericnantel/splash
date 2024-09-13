@@ -3,8 +3,12 @@
 ;       PROGRAM SPLASH                  ;
 ;       VERSION 1.0.0                   ;
 ;       IMAGE ASSEMBLY FILE             ;
+;		FILENAME SPLASHSCREEN.Z80.ASM	;
 ;       AUTHOR ERIC NANTEL              ;
+;		COUNTRY CANADA					;
 ;       COPYRIGHT 2023-2024             ;
+;		SOURCE CODE AVAILABLE ON		;
+;		GITHUB.COM/ERICNANTEL/SPLASH	;
 ;========================================
 
 ISplashScreen:
