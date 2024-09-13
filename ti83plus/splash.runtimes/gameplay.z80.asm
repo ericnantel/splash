@@ -15,21 +15,30 @@
 ;========================================
 ;       NO LISTING                      ;
 ;========================================
-GCameraWorldCoordY		EQU _AppBuffer + 0
-GCameraWorldCoordX		EQU _AppBuffer + 1
-GCameraBitDistance		EQU _AppBuffer + 2
-GCameraWorldOffsetY		EQU _AppBuffer + 3
-GCameraWorldOffsetX		EQU _AppBuffer + 4
-GCameraViewportSizeY	EQU _AppBuffer + 5
-GCameraViewportSizeX	EQU _AppBuffer + 6
-GCameraFlags			EQU	_APPBuffer + 7
-GPlayerWorldCoordY		EQU	_AppBuffer + 8
-GPlayerWorldCoordX		EQU _AppBuffer + 9
-GPlayerFlags			EQU _AppBuffer + 10
+GCameraWorldCoordY				EQU _AppBuffer + 0
+GCameraWorldCoordX				EQU _AppBuffer + 1
+GCameraBitDistance				EQU _AppBuffer + 2
+GCameraWorldOffsetY				EQU _AppBuffer + 3
+GCameraWorldOffsetX				EQU _AppBuffer + 4
+GCameraViewportSizeY			EQU _AppBuffer + 5
+GCameraViewportSizeX			EQU _AppBuffer + 6
+GCameraFlags					EQU	_AppBuffer + 7
+GPlayerWorldCoordY				EQU	_AppBuffer + 8
+GPlayerWorldCoordX				EQU _AppBuffer + 9
+GPlayerFlags					EQU _AppBuffer + 10
+GGameplayInputFlags				EQU _AppBuffer + 11
 
-CAMERA_VISIBLE_FLAG		EQU 0
-PLAYER_VISIBLE_FLAG		EQU 0
-PLAYER_ATTACH_FLAG		EQU 1
+CAMERA_VISIBLE_FLAG				EQU 0
+PLAYER_VISIBLE_FLAG				EQU 0
+PLAYER_ATTACH_FLAG				EQU 1
+GAMEPLAY_INPUT_KEY_DOWN_FLAG	EQU 0
+GAMEPLAY_INPUT_KEY_LEFT_FLAG	EQU 1
+GAMEPLAY_INPUT_KEY_RIGHT_FLAG	EQU 2
+GAMEPLAY_INPUT_KEY_UP_FLAG		EQU 3
+GAMEPLAY_INPUT_KEY_ALPHA_FLAG	EQU 4
+GAMEPLAY_INPUT_KEY_2ND_FLAG		EQU 5
+GAMEPLAY_INPUT_KEY_MODE_FLAG	EQU 6
+GAMEPLAY_INPUT_KEY_DEL_FLAG		EQU 7
 
 .LIST
 

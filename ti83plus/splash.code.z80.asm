@@ -163,97 +163,33 @@ LMainIntro_End:
 	CALL InitGameplayRuntimes
 
 LMainLoop:
-    CALL UpdateInputs
+	CALL ReadGameplayInputFlags
 
-    LD HL, GInputs
-    LD C, (HL)
-    BIT 7, C
-    JP Z, LExit
+	LD A, (GGameplayInputFlags)
+	BIT GAMEPLAY_INPUT_KEY_DEL_FLAG, A
+	JP NZ, LExit
 
-    ;DEBUG
-    ;LD HL, GInputs
-    ;LD C, (HL)
-LCheckCameraDown:
-    BIT 0, C
-    JR Z, LMoveCameraDown
-LCheckCameraLeft:
-    BIT 1, C
-    JR Z, LMoveCameraLeft
-LCheckCameraRight:
-    BIT 2, C
-    JR Z, LMoveCameraRight
-LCheckCameraUp:
-    BIT 3, C
-    JR Z, LMoveCameraUp
-LCheckCameraViewportX:
-    BIT 4, C
-    JR Z, LDecViewportX
-LCheckCameraViewportY:
-    BIT 5, C
-    JR Z, LDecViewportY
+    ;;DEBUG
+	;LD BC, (GCameraWorldCoordY)
+	;; LD BC, (GCameraViewportSizeY)
+	;LD H, 0
+	;LD L, B
+	;LD DE, 256*0+5
+	;LD (curRow), DE
+	;bcall(_DispHL)
+	;LD H, 0
+	;LD L, C
+	;LD DE, 256*0+6
+	;LD (curRow), DE
+	;bcall(_DispHL)
+	;LD HL, GCameraBitDistance
+	;LD L, (HL)
+	;LD H, 0
+	;LD DE, 256*0+7
+	;LD (curRow), DE
+	;bcall(_DispHL)
 
-    JR LCheckCameraDone
-
-LMoveCameraDown:
-    LD HL, GCameraWorldCoordY
-    LD A, (HL)
-    INC A
-    LD (HL), A
-    JR LCheckCameraLeft
-LMoveCameraLeft:
-    LD HL, GCameraWorldCoordX
-    LD A, (HL)
-    DEC A
-    LD (HL), A
-    JR LCheckCameraRight
-LMoveCameraRight:
-    LD HL, GCameraWorldCoordX
-    LD A, (HL)
-    INC A
-    LD (HL), A
-    JR LCheckCameraUp
-LMoveCameraUp:
-    LD HL, GCameraWorldCoordY
-    LD A, (HL)
-    DEC A
-    LD (HL), A
-    JR LCheckCameraViewportX
-LDecViewportX:
-    LD HL, GCameraViewportSizeX
-    LD A, (HL)
-    ;CP 1
-    ;JR Z, LCheckCameraViewportY
-    DEC (HL)
-    JR LCheckCameraViewportY
-LDecViewportY:
-    LD HL, GCameraViewportSizeY
-    LD A, (HL)
-    ;CP 1
-    ;JR Z, LCheckCameraDone
-    DEC (HL)
-
-LCheckCameraDone:
-
-    ;DEBUG
-	LD BC, (GCameraWorldCoordY)
-	; LD BC, (GCameraViewportSizeY)
-	LD H, 0
-	LD L, B
-	LD DE, 256*0+5
-	LD (curRow), DE
-	bcall(_DispHL)
-	LD H, 0
-	LD L, C
-	LD DE, 256*0+6
-	LD (curRow), DE
-	bcall(_DispHL)
-	LD HL, GCameraBitDistance
-	LD L, (HL)
-	LD H, 0
-	LD DE, 256*0+7
-	LD (curRow), DE
-	bcall(_DispHL)
-	
+	CALL Update
     CALL Render
 
     JP LMainLoop
@@ -312,74 +248,6 @@ LLoadLevel_End:
     RET
 
 ;========================================
-;       UPDATE INPUTS                   ;
-;   INPUT   NONE                        ;
-;   OUTPUT  NONE                        ;
-;========================================
-UpdateInputs:
-    LD C, 0
-LReadKeyGroupFE:
-    LD A, 11111111b
-    OUT (_KeyPort), A
-    LD A, KEYGROUP_FE
-    OUT (_KeyPort), A
-    NOP
-    NOP
-    IN A, (_KeyPort)
-LTestKeyPressedDown:
-    BIT 0, A
-    JR Z, LTestKeyPressedLeft
-    SET 0, C
-LTestKeyPressedLeft:
-    BIT 1, A
-    JR Z, LTestKeyPressedRight
-    SET 1, C
-LTestKeyPressedRight:
-    BIT 2, A
-    JR Z, LTestKeyPressedUp
-    SET 2, C
-LTestKeyPressedUp:
-    BIT 3, A
-    JR Z, LReadKeyGroupDF
-    SET 3, C
-LReadKeyGroupDF:
-    LD A, 11111111b
-    OUT (_KeyPort), A
-    LD A, KEYGROUP_DF
-    OUT (_KeyPort), A
-    NOP
-    NOP
-    IN A, (_KeyPort)
-LTestKeyPressedAlpha:
-    BIT 7, A
-    JR Z, LReadKeyGroupBF
-    SET 4, C
-LReadKeyGroupBF:
-    LD A, 11111111b
-    OUT (_KeyPort), A
-    LD A, KEYGROUP_BF
-    OUT (_KeyPort), A
-    NOP
-    NOP
-    IN A, (_KeyPort)
-LTestKeyPressed2nd:
-    BIT 5, A
-    JR Z, LTestKeyPressedMode
-    SET 5, C
-LTestKeyPressedMode:
-    BIT 6, A
-    JR Z, LTestKeyPressedDel
-    SET 6, C
-LTestKeyPressedDel:
-    BIT 7, A
-    JR Z, LWriteInputs
-    SET 7, C
-LWriteInputs:
-    LD HL, GInputs
-    LD (HL), C
-    RET
-
-;========================================
 ;       CLEAR GRAPH BUFFER              ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
@@ -430,11 +298,7 @@ DrawGraphBuffer:
 	SUB C
 	RET C
 
-	; ; NOTE: Calculate bit distance from Camera World Coord X
-	; CALL ConvertWorld2BitDistance
-	; LD (GCameraBitDistance), A
-	CALL UpdateCameraWorldCoords
-	
+	LD A, (GCameraBitDistance)
 	LD E, A
 
 	; NOTE: Calculate fast bit shift jump address and store in IX
@@ -915,6 +779,61 @@ UnpackMatrixCoords:
     RET
 
 ;========================================
+;       UPDATE                          ;
+;   INPUT   NONE                        ;
+;   OUTPUT  NONE                        ;
+;========================================
+Update:
+	; NOTE: Inputs
+	; Move Camera -> Player
+	LD A, (GGameplayInputFlags)
+
+	CP 0
+	JR Z, LCHECKINPUT_DONE
+
+	LD BC, (GCameraWorldCoordY)
+	LD DE, (GCameraViewportSizeY)
+
+	BIT GAMEPLAY_INPUT_KEY_DOWN_FLAG, A
+	JR Z, LA1
+	INC C
+LA1:
+	BIT GAMEPLAY_INPUT_KEY_LEFT_FLAG, A
+	JR Z, LA2
+	DEC B
+LA2:
+	BIT GAMEPLAY_INPUT_KEY_RIGHT_FLAG, A
+	JR Z, LA3
+	INC B
+LA3:
+	BIT GAMEPLAY_INPUT_KEY_UP_FLAG, A
+	JR Z, LA4
+	DEC C
+LA4:
+	BIT GAMEPLAY_INPUT_KEY_ALPHA_FLAG, A
+	JR Z, LA5
+	DEC D
+LA5:
+	BIT GAMEPLAY_INPUT_KEY_2ND_FLAG, A
+	JR Z, LA6
+	DEC E
+LA6:
+	BIT GAMEPLAY_INPUT_KEY_MODE_FLAG, A
+	JR Z, LAD
+LAD:
+	; Perhaps check if BC has changed ?
+	; Such as checking if A is 0
+	; CP 0
+	; JR ..
+	CALL UpdateCameraWorldCoords
+	LD B, D
+	LD C, E
+	CALL UpdateCameraViewportSizes
+LCHECKINPUT_DONE:
+
+	RET
+
+;========================================
 ;       RENDER                          ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
@@ -931,20 +850,6 @@ Render:
 ;========================================
 ;       DATA                            ;
 ;========================================
-
-;========================================
-;       INPUTS                          ;
-;   BIT0    KEY_PRESSED_DOWN            ;
-;   BIT1    KEY_PRESSED_LEFT            ;
-;   BIT2    KEY_PRESSED_RIGHT           ;
-;   BIT3    KEY_PRESSED_UP              ;
-;   BIT4    KEY_PRESSED_ALPHA           ;
-;   BIT5    KEY_PRESSED_2ND             ;
-;   BIT6    KEY_PRESSED_MODE            ;
-;   BIT7    KEY_PRESSED_DEL             ;
-;========================================
-GInputs:
-    .DB 00000000b
 
 GRowCount:
 	.DB 0
