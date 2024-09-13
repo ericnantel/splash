@@ -3,14 +3,18 @@
 ;       PROGRAM SPLASH                  ;
 ;       VERSION 1.0.0                   ;
 ;       CODE ASSEMBLY FILE              ;
+;		FILENAME SPLASH.CODE.Z80.ASM	;
 ;       AUTHOR ERIC NANTEL              ;
+;		COUNTRY CANADA					;
 ;       COPYRIGHT 2023-2024             ;
+;		SOURCE CODE AVAILABLE ON		;
+;		GITHUB.COM/ERICNANTEL/SPLASH	;
 ;========================================
 
+.NOLIST
 ;========================================
 ;       NO LISTING                      ;
 ;========================================
-.NOLIST
 #include "ti83plus.inc"
 _Start				EQU userMem - 2
 _JForceCmd          EQU 402Ah
@@ -47,11 +51,18 @@ CACHE_WIDTH         EQU CACHE_LINE_LENGTH*8
 CACHE_HEIGHT        EQU 128
 CACHE_BUFFER_LENGTH EQU 2048
 .LIST
-    
+
+#include "splash.runtimes/index.z80.asm"
+
 ;========================================
 ;       START ADDRESS                   ;
 ;========================================
 .ORG _Start
+
+;========================================
+;		CODE SECTION					;
+;========================================
+;.CODE
 
 ;========================================
 ;       ASM COMPILE TOKENS              ;
@@ -128,7 +139,6 @@ LMainIntro_Release2ndKeyLoop:
     CP KEYCODE_DF
     JP NZ, LLoadMainLevel
     JR LMainIntro_Release2ndKeyLoop
-
 LLoadMainLevel:
     LD BC, 0
     CALL LoadLevel
@@ -142,13 +152,15 @@ LMainIntro_Loop:
     NOP
     IN A, (_KeyPort)
     CP KEYCODE_DF
-    JP Z, LMainLoop
+    JP Z, LMainIntro_End
     CP KEYCODE_7F
     JP Z, LExit
 
     JR LMainIntro_Loop
+LMainIntro_End:
 
     bcall(_ClrLCDFull)
+	CALL InitGameplayRuntimes
 
 LMainLoop:
     CALL UpdateInputs
@@ -222,25 +234,25 @@ LDecViewportY:
 
 LCheckCameraDone:
 
-    ;;DEBUG
-	;LD BC, (GCameraWorldCoordY)
-	;;LD BC, (GCameraViewportSizeY)
-	;LD H, 0
-	;LD L, B
-	;LD DE, 256*0+5
-	;LD (curRow), DE
-	;bcall(_DispHL)
-	;LD H, 0
-	;LD L, C
-	;LD DE, 256*0+6
-	;LD (curRow), DE
-	;bcall(_DispHL)
-	;LD HL, GBitDistance
-	;LD L, (HL)
-	;LD H, 0
-	;LD DE, 256*0+7
-	;LD (curRow), DE
-	;bcall(_DispHL)
+    ;DEBUG
+	LD BC, (GCameraWorldCoordY)
+	; LD BC, (GCameraViewportSizeY)
+	LD H, 0
+	LD L, B
+	LD DE, 256*0+5
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD H, 0
+	LD L, C
+	LD DE, 256*0+6
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD HL, GCameraBitDistance
+	LD L, (HL)
+	LD H, 0
+	LD DE, 256*0+7
+	LD (curRow), DE
+	bcall(_DispHL)
 	
     CALL Render
 
@@ -368,40 +380,6 @@ LWriteInputs:
     RET
 
 ;========================================
-;       UPDATE PLAYER WORLD COORD       ;
-;   INPUT   NONE                        ;
-;   OUTPUT  NONE                        ;
-;========================================
-UpdatePlayerWorldCoord:
-    RET
-
-;========================================
-;       UPDATE CAMERA WORLD COORD       ;
-;   INPUT   NONE                        ;
-;   OUTPUT  NONE                        ;
-;========================================
-UpdateCameraWorldCoord:
-	; NOTE: not good..
-	; possibly but need to verify
-	; LD HL, (GPlayerWorldCoordY)
-	; LD (GCameraWorldCoordY), HL
-    ; LD HL, GPlayerWorldCoords
-    ; LD DE, GCameraWorldCoords
-    ; LD BC, 2
-    ; LDIR
-    RET
-
-;========================================
-;       UPDATE CAMERA VIEWPORT SIZE     ;
-;   INPUT   BC (VIEWPORT SIZES)         ;
-;   OUTPUT  NONE                        ;
-;========================================
-UpdateCameraViewportSize:
-	; NOTE: HL is a bit faster
-    LD (GCameraViewportSizeY), BC
-    RET
-
-;========================================
 ;       CLEAR GRAPH BUFFER              ;
 ;   INPUT   NONE                        ;
 ;   OUTPUT  NONE                        ;
@@ -452,9 +430,10 @@ DrawGraphBuffer:
 	SUB C
 	RET C
 
-	; NOTE: Calculate bit distance from Camera World Coord X
-	CALL ConvertWorld2BitDistance
-	LD (GBitDistance), A
+	; ; NOTE: Calculate bit distance from Camera World Coord X
+	; CALL ConvertWorld2BitDistance
+	; LD (GCameraBitDistance), A
+	CALL UpdateCameraWorldCoords
 	
 	LD E, A
 
@@ -553,7 +532,7 @@ LDrawScreenRow_Loop_R:
 
 	; NOTE: Shift Cache Line
 	; TODO: Put Bit distance in C or discard if no need to shift
-	; LD HL, GBitDistance
+	; LD HL, GCameraBitDistance
 	; LD B, 0
 	; LD C, (HL)
 	LD D, 0
@@ -967,39 +946,7 @@ Render:
 GInputs:
     .DB 00000000b
 
-;========================================
-;       PLAYER WORLD COORD              ;
-;   BYTE0   Y_COORD                     ;
-;   BYTE1   X_COORD                     ;
-;========================================
-GPlayerWorldCoordY:
-    .DB 0
-GPlayerWorldCoordX:
-    .DB 0
-
-;========================================
-;       CAMERA WORLD COORD              ;
-;   BYTE0   Y_COORD                     ;
-;   BYTE1   X_COORD                     ;
-;========================================
-GCameraWorldCoordY:
-	.DB 0
-GCameraWorldCoordX:
-	.DB 0
-
-;========================================
-;       CAMERA VIEWPORT SIZE            ;
-;   BYTE0   Y_SIZE                      ;
-;   BYTE1   X_SIZE                      ;
-;========================================
-GCameraViewportSizeY:
-	.DB SCREEN_HEIGHT
-GCameraViewportSizeX:
-	.DB SCREEN_WIDTH
-
 GRowCount:
-	.DB 0
-GBitDistance:
 	.DB 0
 
 ;========================================
@@ -1025,6 +972,10 @@ GCacheBuffer:
 ;    .DB CACHE_BUFFER_LENGTH DUP(0)
     .FILL CACHE_BUFFER_LENGTH, (0)
 
+;========================================
+;		DATA SECTION					;
+;========================================
+;.DATA
 #include "splash.assets/index.z80.asm"
 
 .end

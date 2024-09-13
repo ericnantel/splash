@@ -3,14 +3,18 @@
 ;       PROGRAM SPLASH                  ;
 ;       VERSION 1.0.0                   ;
 ;       STRINGS ASSEMBLY FILE			;
+;		FILENAME INTRODUCTION.Z80.ASM	;
 ;       AUTHOR ERIC NANTEL              ;
+;		COUNTRY CANADA					;
 ;       COPYRIGHT 2023-2024             ;
+;		SOURCE CODE AVAILABLE ON		;
+;		GITHUB.COM/ERICNANTEL/SPLASH	;
 ;========================================
 
+.NOLIST
 ;========================================
 ;       NO LISTING                      ;
 ;========================================
-.NOLIST
 .LIST
 
 STitle:

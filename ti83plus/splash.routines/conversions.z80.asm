@@ -3,13 +3,17 @@
 ;       PROGRAM SPLASH					;
 ;       VERSION 1.0.0					;
 ;       ROUTINE ASSEMBLY FILE			;
+;		FILENAME CONVERSIONS.Z80.ASM	;
 ;       AUTHOR ERIC NANTEL				;
+;		COUNTRY CANADA					;
 ;       COPYRIGHT 2023-2024				;
+;		SOURCE CODE AVAILABLE ON		;
+;		GITHUB.COM/ERICNANTEL/SPLASH	;
 ;========================================
 
 ;========================================
 ;       CONVERT WORLD TO BIT DISTANCE	;
-;   INPUT   BC (X_COORD | 0)			;
+;   INPUT   BC (WORLD_X | 0)			;
 ;   OUTPUT  A (BIT DISTANCE)			;
 ;========================================
 ConvertWorld2BitDistance:
