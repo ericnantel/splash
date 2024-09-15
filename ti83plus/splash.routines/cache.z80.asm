@@ -1,0 +1,44 @@
+
+;========================================
+;       PROGRAM SPLASH					;
+;       VERSION 1.0.0					;
+;       ROUTINE ASSEMBLY FILE			;
+;		FILENAME CACHE.Z80.ASM			;
+;       AUTHOR ERIC NANTEL				;
+;		COUNTRY CANADA					;
+;       COPYRIGHT 2023-2024				;
+;		SOURCE CODE AVAILABLE ON		;
+;		GITHUB.COM/ERICNANTEL/SPLASH	;
+;========================================
+
+;========================================
+;       CLEAR CACHE LINE				;
+;   INPUT	NONE						;
+;   OUTPUT  NONE						;
+;========================================
+ClearCacheLine:
+	LD HL, (GCacheLineAddressLow)
+	LD D, H
+	LD E, L
+	INC DE
+	LD (HL), A
+	LD BC, CACHE_LINE_LENGTH-1
+	LDIR
+	RET
+
+;========================================
+;       CLEAR CACHE BUFFER				;
+;   INPUT	NONE						;
+;   OUTPUT  NONE						;
+;========================================
+ClearCacheBuffer:
+	LD HL, (GCacheBufferAddressLow)
+	LD D, H
+	LD E, L
+	INC DE
+	LD (HL), A
+	LD BC, CACHE_BUFFER_LENGTH-1
+	LDIR
+	RET
+
+.end

@@ -17,6 +17,7 @@
 ;========================================
 .LIST
 
+#include "splash.runtimes/buffers.z80.asm"
 #include "splash.runtimes/gameplay.z80.asm"
 
 .end
