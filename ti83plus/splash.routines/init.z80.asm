@@ -18,11 +18,21 @@
 .LIST
 
 ;========================================
-;       INIT GAMEPLAY RUNTIMES       	;
+;       ASSERT ENOUGH FREE MEMORY    	;
+;   INPUT   NONE            			;
+;   OUTPUT  F (CARRY)       			;
+;========================================
+AssertEnoughFreeMemory:
+	LD HL, FREE_MEMORY_NEEDED
+	bcall(_EnoughMem)
+	RET
+
+;========================================
+;       INIT RUNTIMES					;
 ;   INPUT   NONE            			;
 ;   OUTPUT  NONE            			;
 ;========================================
-InitGameplayRuntimes:
+InitRuntimes:
 	LD BC, 0
 	LD (GCameraWorldCoordY), BC
 
@@ -55,6 +65,34 @@ InitGameplayRuntimes:
 
 	XOR A
 	LD (GGameplayInputFlags), A
+
+	LD HL, (_FreeMemStart)
+	LD (GBufferStartAddressLow), HL
+
+	LD HL, (_FreeMemEnd)
+	LD (GBufferEndAddressLow), HL
+
+	LD DE, (GBufferStartAddressLow)
+	LD H, D
+	LD L, E
+	LD BC, CACHE_LINE_OFFSET
+	ADD HL, BC
+	LD (GCacheLineAddressLow), HL
+
+	; NOTE: Initializing cache line extra byte
+	INC HL
+	LD (HL), 0
+
+	INC HL
+	; LD H, D
+	; LD L, E
+	LD BC, CACHE_BUFFER_OFFSET
+	ADD HL, BC
+	LD (GCacheBufferAddressLow), HL
+
+	XOR A
+	CALL ClearCacheLine
+	CALL ClearCacheBuffer
 
 	RET
 

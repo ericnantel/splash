@@ -19,10 +19,14 @@
 _Start				EQU userMem - 2
 _JForceCmd          EQU 402Ah
 _HomeUp             EQU 4558h
+_FreeMemStart		EQU 9824h
+_FreeMemEnd			EQU 9828h
 _GraphBuffer        EQU plotSScreen
 _SaveBuffer         EQU saveSScreen
 _AppBuffer          EQU appBackUpScreen
 _TmpBuffer          EQU tempSwapArea
+_TxtBuffer			EQU textShadow
+_StatBuffer			EQU statVars
 _KeyPort            EQU 01h
 KEYGROUP_BF         EQU 10111111b
 KEYGROUP_DF         EQU 11011111b
@@ -46,10 +50,8 @@ GRAPH_BUFFER_LENGTH EQU 768
 SAVE_BUFFER_LENGTH  EQU 768
 APP_BUFFER_LENGTH   EQU 768
 TMP_BUFFER_LENGTH   EQU 323
-CACHE_LINE_LENGTH   EQU 12;16
-CACHE_WIDTH         EQU CACHE_LINE_LENGTH*8
-CACHE_HEIGHT        EQU 128
-CACHE_BUFFER_LENGTH EQU 2048
+TXT_BUFFER_LENGTH	EQU 128
+STAT_BUFFER_LENGTH	EQU 531
 .LIST
 
 #include "splash.runtimes/index.z80.asm"
@@ -71,6 +73,13 @@ CACHE_BUFFER_LENGTH EQU 2048
 
 LStart:
     bcall(_CursorOff)
+
+LCheckMemory:
+	CALL AssertEnoughFreeMemory
+	JP C, LExit ;TODO: Perhaps print a message or something..
+
+LInitRuntimes:
+	CALL InitRuntimes
 
 LMainMenu:
     bcall(_ClrLCDFull)
@@ -160,7 +169,6 @@ LMainIntro_Loop:
 LMainIntro_End:
 
     bcall(_ClrLCDFull)
-	CALL InitGameplayRuntimes
 
 LMainLoop:
 	CALL ReadGameplayInputFlags
@@ -239,7 +247,7 @@ LoadLevel:
 LFindLevelByID:
     ;DEBUG..
     LD HL, ISplashScreen
-    LD DE, GCacheBuffer
+    LD DE, (GCacheBufferAddressLow)
     LD BC, GRAPH_BUFFER_LENGTH
     LDIR
 
@@ -383,9 +391,9 @@ LDrawScreenRow_Loop_R:
 	;ADD HL, HL
 	;ADD HL, HL
 
-	LD DE, GCacheBuffer
+	LD DE, (GCacheBufferAddressLow)
 	ADD HL, DE
-	LD DE, GCacheLine
+	LD DE, (GCacheLineAddressLow)
 	LD BC, CACHE_LINE_LENGTH
 	LDIR
 
@@ -444,7 +452,7 @@ LDrawScreenRow_Loop_R:
 	LD B, 0
 	LD C, A
 	; register C has cache coord x
-	LD HL, GCacheLine
+	LD HL, (GCacheLineAddressLow)
 	ADD HL, BC
 	
 	; NOTE: Calculate Cache Line Copy Size
@@ -521,19 +529,6 @@ PresentImageBuffer:
     RET
 
 ;========================================
-;       CLEAR CACHE BUFFER              ;
-;   INPUT   NONE                        ;
-;   OUTPUT  NONE                        ;
-;========================================
-ClearCacheBuffer:
-    LD HL, GCacheBuffer
-    LD DE, GCacheBuffer+1
-    LD BC, CACHE_BUFFER_LENGTH-1
-    LD (HL), 0
-    LDIR
-    RET
-
-;========================================
 ;       LOAD CACHE LINE                 ;
 ;   INPUT   BC (CACHE Y_COORD)          ;
 ;   OUTPUT  NONE                        ;
@@ -552,10 +547,10 @@ LoadCacheLine:
     ;ADD HL, HL
     ;ADD HL, HL
 
-    LD DE, GCacheBuffer
+    LD DE, (GCacheBufferAddressLow)
     ADD HL, DE
 
-    LD DE, GCacheLine
+    LD DE, (GCacheLineAddressLow)
     LD BC, CACHE_LINE_LENGTH
     LDIR
     RET
@@ -573,10 +568,6 @@ ShiftCacheLine:
 	; CP 0
 	; RET Z
 
-	; NOTE: Debug
-	; LD A, 255
-	; LD (GCacheLineExtraByte), A
-
 	; THIS WORKS BUT WE SHIFT ALL CACHELINE
 	; ; NOTE: Load B with Byte Count
 	; LD A, CACHE_LINE_LENGTH
@@ -591,7 +582,7 @@ ShiftCacheLine:
 	LD B, A
 
 	; NOTE: Store CacheLine Start Address in DE
-	LD HL, GCacheLine
+	LD HL, (GCacheLineAddressLow)
 	ADD HL, DE
 	EX DE, HL
 
@@ -699,7 +690,7 @@ LCalculateCLCopySize_End:
 CopyCacheLine:
 	; NOTE: I don't like this..
     PUSH BC
-    LD BC, GCacheLine
+    LD BC, (GCacheLineAddressLow)
     ADD HL, BC
     EX DE, HL
     LD BC, _GraphBuffer
@@ -850,32 +841,9 @@ Render:
 ;========================================
 ;       DATA                            ;
 ;========================================
-
+; TODO: Remove this..
 GRowCount:
 	.DB 0
-
-;========================================
-;       CACHE LINE                      ;
-;   16B     RESERVED SPACE              ;
-;========================================
-GCacheLine:
-;    .DB CACHE_LINE_LENGTH DUP(0)
-    .FILL CACHE_LINE_LENGTH, (0)
-
-;========================================
-;       CACHE LINE EXTRA BYTE           ;
-;   1B      RESERVED SPACE              ;
-;========================================
-GCacheLineExtraByte:
-    .DB 0
-
-;========================================
-;       CACHE BUFFER                    ;
-;   2KB     RESERVED SPACE              ;
-;========================================
-GCacheBuffer:
-;    .DB CACHE_BUFFER_LENGTH DUP(0)
-    .FILL CACHE_BUFFER_LENGTH, (0)
 
 ;========================================
 ;		DATA SECTION					;

@@ -27,6 +27,14 @@ GPlayerWorldCoordY				EQU	_AppBuffer + 8
 GPlayerWorldCoordX				EQU _AppBuffer + 9
 GPlayerFlags					EQU _AppBuffer + 10
 GGameplayInputFlags				EQU _AppBuffer + 11
+GBufferStartAddressLow			EQU _AppBuffer + 12
+GBufferStartAddressHigh			EQU _AppBuffer + 13
+GBufferEndAddressLow			EQU _AppBuffer + 14
+GBufferEndAddressHigh			EQU _AppBuffer + 15
+GCacheLineAddressLow			EQU _AppBuffer + 16
+GCacheLineAddressHigh			EQU _AppBuffer + 17
+GCacheBufferAddressLow			EQU _AppBuffer + 18
+GCacheBufferAddressHigh			EQU _AppBuffer + 19
 
 CAMERA_VISIBLE_FLAG				EQU 0
 PLAYER_VISIBLE_FLAG				EQU 0
