@@ -404,9 +404,9 @@ LDrawScreenRow_Loop_R:
 
 	; NOTE: Shift Cache Line
 	; TODO: Put Bit distance in C or discard if no need to shift
-	; LD HL, GCameraBitDistance
-	; LD B, 0
-	; LD C, (HL)
+	LD HL, GCameraBitDistance
+	LD B, 0
+	LD C, (HL)
 	LD D, 0
 	LD E, A
 	; register E has cache coord x
@@ -564,9 +564,9 @@ LoadCacheLine:
 ;========================================
 ShiftCacheLine:
 	; NOTE: Skip if bit distance is 0
-	; LD A, C
-	; CP 0
-	; RET Z
+	LD A, C
+	CP 0
+	RET Z
 
 	; THIS WORKS BUT WE SHIFT ALL CACHELINE
 	; ; NOTE: Load B with Byte Count
