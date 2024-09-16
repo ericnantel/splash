@@ -11,6 +11,12 @@
 ;		GITHUB.COM/ERICNANTEL/SPLASH	;
 ;========================================
 
+.NOLIST
+;========================================
+;       NO LISTING                      ;
+;========================================
+.LIST
+
 ;========================================
 ;       CONVERT WORLD TO BIT DISTANCE	;
 ;   INPUT   BC (WORLD_X | 0)			;
@@ -30,18 +36,21 @@ LBitDistance_Loop:
 LBitDistance_End:
 	LD A, B
 #else
-	LD C, 00011111b		;4ticks
-	LD A, B				;4ticks
-	RRA					;4ticks
-	RRA					;4ticks
-	RRA					;4ticks
-	AND C				;4ticks
-	ADD A, A			;4ticks
-	ADD A, A			;4ticks
-	ADD A, A			;4ticks
-	LD C, A				;4ticks
-	LD A, B				;4ticks
-	SUB C				;4ticks = 48ticks
+	LD A, B					;4ticks
+	AND %00000111			;4ticks = 8ticks
+	; WORKS BUT NOT THE FASTEST FOR MOD8
+	; LD C, 00011111b		;4ticks
+	; LD A, B				;4ticks
+	; RRA					;4ticks
+	; RRA					;4ticks
+	; RRA					;4ticks
+	; AND C				;4ticks
+	; ADD A, A			;4ticks
+	; ADD A, A			;4ticks
+	; ADD A, A			;4ticks
+	; LD C, A				;4ticks
+	; LD A, B				;4ticks
+	; SUB C				;4ticks = 48ticks
 #endif
 	RET
 
