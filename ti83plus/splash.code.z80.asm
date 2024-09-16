@@ -345,7 +345,7 @@ DrawGraphBuffer:
 	LD A, (GCameraViewportSizeY)
 	LD C, A
 	; register C has max draw calls
-	LD A, CACHE_HEIGHT-1
+	LD A, CACHE_HEIGHT
 	SUB B
 	SUB C
 	JR C, LDrawCallClamp
@@ -353,7 +353,7 @@ DrawGraphBuffer:
 	JR LDrawCallDone
 LDrawCallClamp:
 	; We cannot show all viewport size y
-	LD A, CACHE_HEIGHT-1
+	LD A, CACHE_HEIGHT
 	SUB B
 LDrawCallDone:
 	; LD B, 0
