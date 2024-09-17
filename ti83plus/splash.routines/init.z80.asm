@@ -80,12 +80,15 @@ InitRuntimes:
 	LD (GCacheLineAddressLow), HL
 
 	; NOTE: Initializing cache line extra byte
-	INC HL
-	LD (HL), 0
+	LD H, D
+	LD L, E
+	LD BC, CACHE_LINE_EXTRA_OFFSET
+	ADD HL, BC
+	LD A, 0
+	LD (HL), A
 
-	INC HL
-	; LD H, D
-	; LD L, E
+	LD H, D
+	LD L, E
 	LD BC, CACHE_BUFFER_OFFSET
 	ADD HL, BC
 	LD (GCacheBufferAddressLow), HL
