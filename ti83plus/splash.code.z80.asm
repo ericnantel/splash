@@ -177,25 +177,45 @@ LMainLoop:
 	BIT GAMEPLAY_INPUT_KEY_DEL_FLAG, A
 	JP NZ, LExit
 
-    ;;DEBUG
-	;LD BC, (GCameraWorldCoordY)
-	;; LD BC, (GCameraViewportSizeY)
-	;LD H, 0
-	;LD L, B
-	;LD DE, 256*0+5
-	;LD (curRow), DE
-	;bcall(_DispHL)
-	;LD H, 0
-	;LD L, C
-	;LD DE, 256*0+6
-	;LD (curRow), DE
-	;bcall(_DispHL)
-	;LD HL, GCameraBitDistance
-	;LD L, (HL)
-	;LD H, 0
-	;LD DE, 256*0+7
-	;LD (curRow), DE
-	;bcall(_DispHL)
+    ;DEBUG
+	LD HL, (GCacheLineAddressLow)
+	LD B, 0
+	LD C, CACHE_LINE_LENGTH+1
+	ADD HL, BC
+	LD A, (HL)
+	LD H, 0
+	LD L, A
+	LD DE, 256*0+2
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD BC, (GCameraViewportSizeY)
+	LD H, 0
+	LD L, B
+	LD DE, 256*0+3
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD H, 0
+	LD L, C
+	LD DE, 256*0+4
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD BC, (GCameraWorldCoordY)
+	LD H, 0
+	LD L, B
+	LD DE, 256*0+5
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD H, 0
+	LD L, C
+	LD DE, 256*0+6
+	LD (curRow), DE
+	bcall(_DispHL)
+	LD HL, GCameraBitDistance
+	LD L, (HL)
+	LD H, 0
+	LD DE, 256*0+7
+	LD (curRow), DE
+	bcall(_DispHL)
 
 	CALL Update
     CALL Render
@@ -568,23 +588,25 @@ ShiftCacheLine:
 	CP 0
 	RET Z
 
+	; Uncommented this works, but extra byte is dirty
+	; need to find out what happened..
 	; THIS WORKS BUT WE SHIFT ALL CACHELINE
-	; ; NOTE: Load B with Byte Count
-	; LD A, CACHE_LINE_LENGTH
-	; LD B, A
-	;
-	; ; NOTE: Store CacheLine Address in DE
-	; LD DE, GCacheLine
-	
 	; NOTE: Load B with Byte Count
 	LD A, CACHE_LINE_LENGTH
-	SUB E
 	LD B, A
 
-	; NOTE: Store CacheLine Start Address in DE
-	LD HL, (GCacheLineAddressLow)
-	ADD HL, DE
-	EX DE, HL
+	; NOTE: Store CacheLine Address in DE
+	LD DE, (GCacheLineAddressLow)
+	
+	; ; NOTE: Load B with Byte Count
+	; LD A, CACHE_LINE_LENGTH
+	; SUB E
+	; LD B, A
+
+	; ; NOTE: Store CacheLine Start Address in DE
+	; LD HL, (GCacheLineAddressLow)
+	; ADD HL, DE
+	; EX DE, HL
 
 	; NOTE: Loop with Counter in register B
 LShiftCacheLine_ShiftLoop:
@@ -837,13 +859,6 @@ Render:
 	CALL DrawGraphBuffer
     CALL PresentGraphBuffer
     RET
-
-;========================================
-;       DATA                            ;
-;========================================
-; TODO: Remove this..
-GRowCount:
-	.DB 0
 
 ;========================================
 ;		DATA SECTION					;
