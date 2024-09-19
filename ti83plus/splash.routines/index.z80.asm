@@ -19,10 +19,13 @@
 .LIST
 
 #include "splash.routines/cache.z80.asm"
+#include "splash.routines/tiles.z80.asm"
+#include "splash.routines/levels.z80.asm"
 #include "splash.routines/camera.z80.asm"
 #include "splash.routines/player.z80.asm"
 #include "splash.routines/inputs.z80.asm"
 #include "splash.routines/conversions.z80.asm"
+#include "splash.routines/loaders.z80.asm"
 #include "splash.routines/init.z80.asm"
 
 ; CALCULATEDRAWCALLS:

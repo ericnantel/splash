@@ -19,7 +19,7 @@
 
 ;========================================
 ;       CLEAR CACHE LINE				;
-;   INPUT	NONE						;
+;   INPUT	A (CLEAR_VALUE)				;
 ;   OUTPUT  NONE						;
 ;========================================
 ClearCacheLine:
@@ -34,7 +34,7 @@ ClearCacheLine:
 
 ;========================================
 ;       CLEAR CACHE BUFFER				;
-;   INPUT	NONE						;
+;   INPUT	A (CLEAR_VALUE)				;
 ;   OUTPUT  NONE						;
 ;========================================
 ClearCacheBuffer:
@@ -44,6 +44,21 @@ ClearCacheBuffer:
 	INC DE
 	LD (HL), A
 	LD BC, CACHE_BUFFER_LENGTH-1
+	LDIR
+	RET
+
+;========================================
+;       CLEAR TILE INDEX BUFFER			;
+;   INPUT	A (CLEAR_TILE_INDEX)		;
+;   OUTPUT  NONE						;
+;========================================
+ClearTileIndexBuffer:
+	LD HL, (GTileIndexBufferAddressLow)
+	LD D, H
+	LD E, L
+	INC DE
+	LD (HL), A
+	LD BC, TILE_INDEX_BUFFER_LENGTH-1
 	LDIR
 	RET
 

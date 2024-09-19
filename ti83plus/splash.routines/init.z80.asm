@@ -93,9 +93,37 @@ InitRuntimes:
 	ADD HL, BC
 	LD (GCacheBufferAddressLow), HL
 
+	LD H, D
+	LD L, E
+	LD BC, TILE_INDEX_BUFFER_OFFSET
+	ADD HL, BC
+	LD (GTileIndexBufferAddressLow), HL
+
+	LD H, D
+	LD L, E
+	LD BC, TILE_IMAGE_BUFFER_OFFSET
+	ADD HL, BC
+	LD (GTileImageBufferAddressLow), HL
+
+	LD H, D
+	LD L, E
+	LD BC, LVL_H_BUFFER_OFFSET
+	ADD HL, BC
+	LD (GLevelHBufferAddressLow), HL
+
+	LD H, D
+	LD L, E
+	LD BC, LVL_TD_BUFFER_OFFSET
+	ADD HL, BC
+	LD (GLevelTDBufferAddressLow), HL
+
 	XOR A
 	CALL ClearCacheLine
 	CALL ClearCacheBuffer
+	CALL ClearTileIndexBuffer
+	CALL ClearTileImageBuffer
+	CALL ClearLevelHeaderBuffer
+	CALL ClearLevelTileDataBuffer
 
 	RET
 

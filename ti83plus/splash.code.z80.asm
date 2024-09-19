@@ -290,7 +290,7 @@ LFindLevelByID:
     LD DE, (GCacheBufferAddressLow)
     LD BC, GRAPH_BUFFER_LENGTH
     LDIR
-
+	CALL LoadLevelTest
 LLoadLevel_End:
     bcall(_RunIndicOff)
     RET
@@ -877,7 +877,57 @@ Render:
     CALL ClearGraphBuffer
     
 	CALL DrawGraphBuffer
-    CALL PresentGraphBuffer
+	
+	;DEBUG
+	LD BC, 12*28+6
+	LD IX, _GraphBuffer
+	ADD IX, BC
+	LD A, (IX)
+	AND %11000011
+	OR %00111100
+	LD (IX), A
+
+	LD BC, 12*28+6
+	LD IX, _GraphBuffer
+	ADD IX, BC
+	LD A, (IX)
+	AND %11100111
+	OR %00011000
+	LD (IX), A
+
+	LD BC, 12*29+6
+	LD IX, _GraphBuffer
+	ADD IX, BC
+	LD A, (IX)
+	AND %11000011
+	OR %00111100
+	LD (IX), A
+    
+	LD BC, 12*30+6
+	LD IX, _GraphBuffer
+	ADD IX, BC
+	LD A, (IX)
+	AND %10000001
+	OR %01111110
+	LD (IX), A
+	
+	LD BC, 12*31+6
+	LD IX, _GraphBuffer
+	ADD IX, BC
+	LD A, (IX)
+	AND %00000000
+	OR %11111111
+	LD (IX), A
+	
+	LD BC, 12*32+6
+	LD IX, _GraphBuffer
+	ADD IX, BC
+	LD A, (IX)
+	AND %10000001
+	OR %01111110
+	LD (IX), A
+
+	CALL PresentGraphBuffer
     RET
 
 ;========================================
