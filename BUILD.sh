@@ -1,0 +1,119 @@
+#!/bin/sh
+
+#Prerequisites
+#TASM.EXE is a 32bit Windows Application (.exe)
+#So it can run fine on Windows 11 with a x86_64 cpu arch
+#On Mac or Linux -> install wine or similar application to run TASM.EXE
+#First time you run wine, it may ask for permissions
+#DEVPAC8X.COM is a 16bit DOS Application (.com)
+#It can run on Windows 98
+#On Modern PC, either use an emulator such as Virtual Box or UTM
+#Or install DOSBox (recommended) on Windows 11, Mac or Linux
+#Or install FreeDOS (not tested yet) on Windows 11, Mac or Linux
+#First time you run DOSBox, it may ask for permissions
+
+#brew tap homebrew/cask-versions
+#brew install --cask --no-quarantine wine-stable
+
+os=$(uname -o)
+starting_directory=$(cd $(dirname $0) && pwd)
+output="binaries"
+directory="ti83plus"
+filename="splash"
+include_file="ti83plus.inc"
+source_file=${filename}.code.z80.asm
+asset_folder=${filename}.assets
+routine_folder=${filename}.routines
+runtime_folder=${filename}.runtimes
+binary_file=${filename}.bin
+listing_file=${filename}.lst
+export_file=${filename}.8xp
+
+echo assemble..
+
+#ASSEMBLE
+cd ${directory}
+cp ${include_file} ..
+cp ${source_file} ..
+mkdir -p ${asset_folder}
+cp -r ${asset_folder} ..
+mkdir -p ${routine_folder}
+cp -r ${routine_folder} ..
+mkdir -p ${runtime_folder}
+cp -r ${runtime_folder} ..
+cd ..
+mv ${include_file} toolchain/tasm
+mv ${source_file} toolchain/tasm
+mv ${asset_folder} toolchain/tasm
+mv ${routine_folder} toolchain/tasm
+mv ${runtime_folder} toolchain/tasm
+cd toolchain/tasm
+#if not exist TASM.EXE goto missing_assembler
+if [ "$os" = 'Msys' ]; then
+	./TASM.EXE -80 -i -b ${source_file} ${binary_file}
+elif [ "$os" = 'GNU/Linux' ]; then
+	wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
+else
+	wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
+fi
+
+echo preparing..
+
+#PREPARE
+mv ${include_file} ../cache
+mv ${source_file} ../cache
+rm -rf ../cache/${asset_folder}
+mv ${asset_folder} ../cache
+rm -rf ../cache/${routine_folder}
+mv ${routine_folder} ../cache
+rm -rf ../cache/${runtime_folder}
+mv ${runtime_folder} ../cache
+#if not exist ${binary_file} goto fail_assemble
+cp ${binary_file} ../cache
+mv ${binary_file} ../devpac8x
+#if not exist ${listing_file} goto fail_assemble
+cp ${listing_file} ../cache
+mv ${listing_file} ../devpac8x
+
+echo export..
+
+echo "******** $os"
+#EXPORT
+cd ..
+cd devpac8x
+#if not exist DEVPAC8X.COM goto missing_exporter
+if [ "$os" = 'Msys' ]; then
+	"C:\Program Files (x86)\DOSBox-0.74-3\DOSBox.exe" -c "MOUNT C $(pwd -W)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
+elif [ "$os" = 'GNU/Linux' ]; then
+	#debian package 0.74-3-5build2
+	"dosbox" -c "MOUNT C $(pwd)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
+else
+	"/Applications/DOSBox.app/Contents/MacOS/DOSBox" -c "MOUNT C $(pwd)" -c "C:" -c "DEVPAC8X ${filename}" -c "exit"
+fi
+
+#if not exist ${export_file} goto fail_export
+rm ${binary_file}
+rm ${listing_file}
+if [ "$os" = 'GNU/Linux' ]; then
+	# TODO: Investigate uppercase situation
+	# For some reason, dosbox debian package does this ..
+	cp SPLASH.8XP ../cache
+	mv SPLASH.8XP ..
+	cd ..
+	mv SPLASH.8XP ../${output}
+	cd ..
+else
+	cp ${export_file} ../cache
+	mv ${export_file} ..
+	cd ..
+	mv ${export_file} ../${output}
+	cd ..
+fi
+
+#TODO RUN OR TRANSFER
+
+echo Success
+
+cd ${starting_directory}
+
+
