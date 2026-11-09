@@ -52,7 +52,7 @@ cd toolchain/tasm
 if [ "$os" = 'Msys' ]; then
 	./TASM.EXE -80 -i -b ${source_file} ${binary_file}
 elif [ "$os" = 'GNU/Linux' ]; then
-	wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
+	wine32 TASM.EXE -80 -i -b ${source_file} ${binary_file}
 else
 	wine TASM.EXE -80 -i -b ${source_file} ${binary_file}
 fi
