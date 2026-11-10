@@ -7,11 +7,3 @@
 /splash/ti83plus.inc
 /splash/ti83plus2.inc
 /splash/ti83plusAsm.inc
-/toolchain/jpeg2bin/build/
-/toolchain/jpeg2bin/.vs/
-/toolchain/jpeg2bin/out/
-/toolchain/jpeg2bin/.cache/
-/toolchain/thirdparty/binaries/
-/toolchain/thirdparty/libjpeg-turbo/build/
-/toolchain/thirdparty/libjpeg-turbo/.vs/
-/toolchain/thirdparty/libjpeg-turbo/out/
