@@ -2,6 +2,7 @@
 	"search.exclude": {
 		"**/tmp": true,
 		"**/binaries": true,
+		"**/includes": true,
 		"**/binpac8x": true,
 		"**/devpac8x": true,
 		"**/tasm": true,
@@ -10,6 +11,7 @@
 	"files.exclude": {
 		"**/tmp": true,
 		"**/binaries": true,
+		"**/includes": true,
 		"**/binpac8x": true,
 		"**/devpac8x": true,
 		"**/tasm": true,
