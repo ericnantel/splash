@@ -40,6 +40,8 @@ coded in Assembly Z80 by Eric Nantel @ericnantel
 ```shell
     mkdir ~/projects
     git clone https://github.com/ericnantel/splash ~/projects/splash
+    cd ~/projects/splash
+    git checkout develop
 ```
 - Copy ti83plus.inc, TASM, BinPac8x to the project folder
 ```shell
@@ -58,6 +60,7 @@ coded in Assembly Z80 by Eric Nantel @ericnantel
     ```
 - Build game
 ```shell
+    cd ~/projects/splash
     sh BUILD.sh
 ```
 - Test with emulators (requires ROM) or Upload the game to your calculator (requires tilp2 and a Silver Link Cable)
