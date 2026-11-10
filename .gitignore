@@ -4,9 +4,9 @@
 /emulators/
 /RG/
 /roms/
-/ti83plus/ti83plus.inc
-/ti83plus/ti83plus2.inc
-/ti83plus/ti83plusAsm.inc
+/splash/ti83plus.inc
+/splash/ti83plus2.inc
+/splash/ti83plusAsm.inc
 /toolchain/cache/
 /toolchain/binpac8x/
 /toolchain/devpac8x/
