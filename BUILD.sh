@@ -3,7 +3,7 @@
 os=$(uname -o)
 starting_dir=$(cd $(dirname $0) && pwd)
 
-project_dir="ti83plus"
+project_dir="splash"
 filename="splash"
 calcname="SPLASH" #MUST BE UPPERCASE AND LESS THAN 8 CHARACTERS
 tmp_dir=${starting_dir}/tmp/${filename}
