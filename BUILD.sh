@@ -8,8 +8,8 @@ filename="splash"
 calcname="SPLASH" #MUST BE UPPERCASE AND LESS THAN 8 CHARACTERS
 tmp_dir=${starting_dir}/tmp/${filename}
 binaries_dir=${starting_dir}/binaries
-assembler_dir=${starting_dir}/toolchain/tasm
-packer_dir=${starting_dir}/toolchain/binpac8x
+assembler_dir=${starting_dir}/tasm
+packer_dir=${starting_dir}/binpac8x #NON DOS ALTERNATIVE TO DEVPAC8X
 
 echo copying .z80.asm
 mkdir -p ${tmp_dir}
