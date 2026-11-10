@@ -63,6 +63,11 @@ coded in Assembly Z80 by Eric Nantel @ericnantel
     cd ~/projects/splash
     sh BUILD.sh
 ```
+- Run game (currently only for tilem2)
+```shell
+    cd ~/projects/splash
+    sh RUN.sh
+```
 - Test with emulators (requires ROM) or Upload the game to your calculator (requires tilp2 and a Silver Link Cable)
 ```shell
     ~/projects/splash/binaries/splash.8xp
